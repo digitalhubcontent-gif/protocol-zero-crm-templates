@@ -16,6 +16,7 @@ interface Props {
     zones?: Zone[];
     centerLabel?: string;
     subLabel?: string;
+    label?: string;
     size?: number;
     accent?: string;
     bgColor?: string;
