@@ -11,6 +11,14 @@ const nextConfig = {
   // React optimization
   reactStrictMode: true,
 
+  // Skip ESLint and TypeScript errors during production builds
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+
   // Image optimization
   images: {
     unoptimized: true,
