@@ -1,0 +1,169 @@
+'use client';
+
+import React from 'react';
+import { getTemplateBySlug, getAdjacentTemplates } from '@/lib/registry';
+import { CrmLayout } from '@/components/crm-layout/CrmLayout';
+import { RampTimelineChart } from '@/components/charts/RampTimelineChart';
+import { ARR_WATERFALL, NRR_TREND, RAMP_COHORT, TERRITORY_COVERAGE, RAMP_PRODUCERS } from '../data';
+
+const accent = '#f97316';
+const bg = '#020405';
+const card: React.CSSProperties = { background: '#0d1825', border: '1px solid rgba(249,115,22,0.08)', borderRadius: 8, padding: '20px 24px', transition: 'all 0.25s cubic-bezier(.4,0,.2,1)' };
+const lbl: React.CSSProperties = { fontSize: '0.625rem', fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 14 };
+
+function AnalyticsContent() {
+    const covColor = (v: number) => v < 2 ? '#ef4444' : v < 3 ? '#f59e0b' : '#22c55e';
+    const rampColor = (v: number | null) => v === null ? '#0d1825' : v < 40 ? '#ef4444' : v < 70 ? '#f59e0b' : '#22c55e';
+
+    return (
+        <div style={{ background: bg, minHeight: '100vh' }}>
+            <div style={{ padding: '24px 32px', maxWidth: 1400, margin: '0 auto' }}>
+                <h1 style={{ fontSize: '1.375rem', fontWeight: 700, color: '#f9fafb', margin: '0 0 4px', fontFamily: "'Space Grotesk', sans-serif" }}>Operational Intelligence</h1>
+                <p style={{ fontSize: '0.75rem', color: '#4b5563', margin: '0 0 20px' }}>ARR bridge · NRR trend · Ramp cohort · Territory coverage</p>
+
+                {/* Metrics */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 14, marginBottom: 20 }}>
+                    {[
+                        { label: 'ARR Bridge (QoQ)', value: '+$12M', color: '#22c55e' },
+                        { label: 'Headcount ROI', value: '$184K/FTE', color: accent },
+                        { label: 'Expand:Acquire', value: '1 : 2.4', color: '#3b82f6' },
+                    ].map(m => (
+                        <div key={m.label} style={card}
+                            onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = `${m.color}30`; (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-3px)'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 20px rgba(0,0,0,0.3)'; }}
+                            onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(249,115,22,0.08)'; (e.currentTarget as HTMLDivElement).style.transform = 'none'; (e.currentTarget as HTMLDivElement).style.boxShadow = 'none'; }}>
+                            <div style={{ fontSize: '0.5rem', fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>{m.label}</div>
+                            <div style={{ fontSize: '2rem', fontWeight: 800, color: m.color, letterSpacing: '-0.04em', fontFamily: "'Space Grotesk', sans-serif" }}>{m.value}</div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* ARR Waterfall + NRR Trend */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
+                    <div style={card}
+                        onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = `${accent}25`; }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(249,115,22,0.08)'; }}>
+                        <div style={lbl}>ARR Waterfall Bridge</div>
+                        <div style={{ display: 'flex', gap: 8, justifyContent: 'space-around', alignItems: 'flex-end', height: 180 }}>
+                            {ARR_WATERFALL.map((bar, i) => {
+                                const maxVal = Math.max(...ARR_WATERFALL.map(b => Math.abs(b.value)));
+                                const h = (Math.abs(bar.value) / maxVal) * 140;
+                                const color = bar.type === 'negative' ? '#ef4444' : bar.type === 'total' ? accent : '#22c55e';
+                                return (
+                                    <div key={bar.label} style={{ textAlign: 'center', flex: 1 }}>
+                                        <div style={{ fontSize: '0.5625rem', fontWeight: 700, color, marginBottom: 4 }}>${Math.abs(bar.value)}M</div>
+                                        <div style={{ height: h, background: color, borderRadius: '4px 4px 0 0', opacity: 0.7, margin: '0 auto', width: '60%', transition: 'all 0.3s', cursor: 'pointer' }}
+                                            onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.opacity = '1'; }}
+                                            onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.opacity = '0.7'; }} />
+                                        <div style={{ fontSize: '0.4375rem', color: '#6b7280', marginTop: 4 }}>{bar.label}</div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                    <div style={card}
+                        onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = `${accent}25`; }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(249,115,22,0.08)'; }}>
+                        <div style={lbl}>NRR Trend — 8 Quarters</div>
+                        <svg width="100%" height="160" viewBox="0 0 300 160">
+                            <rect x={30} y={40} width={260} height={40} fill="rgba(34,197,94,0.05)" rx={2} />
+                            <text x={24} y={52} fontSize={6} fill="rgba(34,197,94,0.3)">130%</text>
+                            <text x={24} y={76} fontSize={6} fill="rgba(34,197,94,0.3)">100%</text>
+                            <polyline
+                                points={NRR_TREND.map((d, i) => `${30 + i * (260 / 7)},${150 - (d.value - 100) * 5}`).join(' ')}
+                                stroke={accent} strokeWidth={2} fill="none" />
+                            {NRR_TREND.map((d, i) => (
+                                <circle key={i} cx={30 + i * (260 / 7)} cy={150 - (d.value - 100) * 5} r={3} fill={accent}
+                                    style={{ cursor: 'pointer', transition: 'all 0.2s' }}
+                                    onMouseEnter={e => { (e.target as SVGCircleElement).setAttribute('r', '5'); }}
+                                    onMouseLeave={e => { (e.target as SVGCircleElement).setAttribute('r', '3'); }}>
+                                    <title>{d.quarter}: {d.value}%</title>
+                                </circle>
+                            ))}
+                        </svg>
+                    </div>
+                </div>
+
+                {/* Ramp Cohort */}
+                <div style={{ ...card, marginBottom: 20 }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = `${accent}25`; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(249,115,22,0.08)'; }}>
+                    <div style={lbl}>Headcount Ramp Cohort — % Quota Attained</div>
+                    <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 3 }}>
+                        <thead>
+                            <tr>
+                                <th style={{ padding: '3px 6px', fontSize: '0.45rem', color: '#4b5563', textAlign: 'left', fontWeight: 700 }}>Hire Quarter</th>
+                                {['M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M12'].map(m => (
+                                    <th key={m} style={{ padding: '3px', fontSize: '0.45rem', color: '#4b5563', textAlign: 'center', fontWeight: 700 }}>{m}</th>
+                                ))}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {RAMP_COHORT.map(row => (
+                                <tr key={row.quarter}>
+                                    <td style={{ padding: '2px 6px', fontSize: '0.5rem', color: '#9ca3af' }}>{row.quarter}</td>
+                                    {[row.m1, row.m2, row.m3, row.m4, row.m5, row.m6, row.m12].map((v, j) => (
+                                        <td key={j} style={{ padding: '1px' }}>
+                                            <div style={{ height: 22, borderRadius: 3, background: v !== null ? `${rampColor(v)}18` : '#071019', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                <span style={{ fontSize: '0.4375rem', fontWeight: 700, color: v !== null ? rampColor(v) : '#1f2937' }}>{v !== null ? `${v}%` : '—'}</span>
+                                            </div>
+                                        </td>
+                                    ))}
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+
+                {/* Territory Coverage Heatmap + Ramp Timeline */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+                    <div style={card}
+                        onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = `${accent}25`; }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(249,115,22,0.08)'; }}>
+                        <div style={lbl}>Territory Coverage — Last 6 Quarters</div>
+                        <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 3 }}>
+                            <thead>
+                                <tr>
+                                    <th style={{ padding: '3px 6px', fontSize: '0.45rem', color: '#4b5563', textAlign: 'left', fontWeight: 700 }}>Territory</th>
+                                    {['Q3 23', 'Q4 23', 'Q1 24', 'Q2 24', 'Q3 24', 'Q4 24'].map(q => (
+                                        <th key={q} style={{ padding: '3px', fontSize: '0.45rem', color: '#4b5563', textAlign: 'center', fontWeight: 700 }}>{q}</th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {TERRITORY_COVERAGE.map(row => (
+                                    <tr key={row.territory}>
+                                        <td style={{ padding: '2px 6px', fontSize: '0.5rem', color: '#9ca3af', whiteSpace: 'nowrap' }}>{row.territory}</td>
+                                        {[row.q1, row.q2, row.q3, row.q4, row.q5, row.q6].map((v, j) => (
+                                            <td key={j} style={{ padding: '1px' }}>
+                                                <div style={{ height: 22, borderRadius: 3, background: `${covColor(v)}18`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                    <span style={{ fontSize: '0.4375rem', fontWeight: 700, color: covColor(v) }}>{v}x</span>
+                                                </div>
+                                            </td>
+                                        ))}
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div style={card}
+                        onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = `${accent}25`; }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(249,115,22,0.08)'; }}>
+                        <div style={lbl}>Producer Ramp Timeline</div>
+                        <RampTimelineChart reps={RAMP_PRODUCERS} expectedRampMonths={4.5} accent={accent} />
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+export default function Analytics12Page() {
+    const template = getTemplateBySlug('crm-12');
+    if (!template) return null;
+    const { prev, next } = getAdjacentTemplates('crm-12');
+    return (
+        <CrmLayout template={template} prevTemplate={prev} nextTemplate={next} currentPage="analytics" accentColor={accent}>
+            <AnalyticsContent />
+        </CrmLayout>
+    );
+}

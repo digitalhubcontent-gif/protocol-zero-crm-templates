@@ -1,0 +1,120 @@
+'use client';
+
+import React from 'react';
+import { getTemplateBySlug, getAdjacentTemplates } from '@/lib/registry';
+import { CrmLayout } from '@/components/crm-layout/CrmLayout';
+import { ACCOUNT_CONTRIBUTION } from '../data';
+
+const accent = '#f97316';
+const bg = 'var(--bg-primary)';
+const card: React.CSSProperties = { background: 'var(--bg-card)', border: '1px solid rgba(249,115,22,0.08)', borderRadius: 8, padding: '20px 24px', transition: 'all 0.25s cubic-bezier(.4,0,.2,1)' };
+const lbl: React.CSSProperties = { fontSize: '0.625rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 14 };
+
+function ContactsContent() {
+    const maxArr = Math.max(...ACCOUNT_CONTRIBUTION.map(a => a.arr));
+
+    return (
+        <div style={{ background: bg, minHeight: '100vh' }}>
+            <div style={{ padding: '24px 32px', maxWidth: 1400, margin: '0 auto' }}>
+                <h1 style={{ fontSize: '1.375rem', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 4px', fontFamily: "'Space Grotesk', sans-serif" }}>Revenue Impact Registry</h1>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: '0 0 20px' }}>Account contribution · Value distribution · Expansion potential · Engagement</p>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 14, marginBottom: 20 }}>
+                    {[
+                        { label: 'Avg Revenue / Account', value: '$284K', color: accent },
+                        { label: 'Account Value Index', value: '7.2/10', color: '#22c55e' },
+                        { label: 'Expansion Pipeline', value: '$38M', color: '#3b82f6' },
+                    ].map(m => (
+                        <div key={m.label} style={card}
+                            onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = `${m.color}30`; (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-3px)'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 20px rgba(0,0,0,0.3)'; }}
+                            onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(249,115,22,0.08)'; (e.currentTarget as HTMLDivElement).style.transform = 'none'; (e.currentTarget as HTMLDivElement).style.boxShadow = 'none'; }}>
+                            <div style={{ fontSize: '0.5rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>{m.label}</div>
+                            <div style={{ fontSize: '2rem', fontWeight: 800, color: m.color, letterSpacing: '-0.04em', fontFamily: "'Space Grotesk', sans-serif" }}>{m.value}</div>
+                        </div>
+                    ))}
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
+                    <div style={card}
+                        onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = `${accent}25`; }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(249,115,22,0.08)'; }}>
+                        <div style={lbl}>Revenue Contribution by Account</div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                            {ACCOUNT_CONTRIBUTION.map((a, i) => (
+                                <div key={a.name} style={{ display: 'flex', alignItems: 'center', gap: 8, transition: 'all 0.15s', cursor: 'pointer', padding: '2px 0', borderRadius: 3 }}
+                                    onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.background = 'rgba(249,115,22,0.03)'; }}
+                                    onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = 'transparent'; }}>
+                                    <span style={{ fontSize: '0.5rem', fontWeight: 700, color: '#374151', width: 16, textAlign: 'right' }}>#{i + 1}</span>
+                                    <span style={{ fontSize: '0.5625rem', color: 'var(--text-secondary)', width: 120, fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{a.name}</span>
+                                    <div style={{ flex: 1, height: 14, background: 'var(--bg-card)', borderRadius: 3, display: 'flex', overflow: 'hidden' }}>
+                                        <div style={{ width: `${(a.arr / maxArr) * 100}%`, height: '100%', background: accent, borderRadius: 3, opacity: 0.6 }} />
+                                    </div>
+                                    <span style={{ fontSize: '0.5rem', fontWeight: 700, color: accent, width: 38, textAlign: 'right' }}>${a.arr}K</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div style={card}
+                        onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = `${accent}25`; }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(249,115,22,0.08)'; }}>
+                        <div style={lbl}>Expansion Probability Scatter</div>
+                        <svg width="100%" height="220" viewBox="0 0 300 220">
+                            {[0, 50, 100, 150, 200].map(y => (
+                                <line key={y} x1={30} y1={y + 10} x2={290} y2={y + 10} stroke="var(--border-subtle)" strokeWidth={0.5} />
+                            ))}
+                            {[
+                                { usage: 85, prob: 82, arr: 320, name: 'TechCorp' },
+                                { usage: 72, prob: 68, arr: 280, name: 'GlobalData' },
+                                { usage: 64, prob: 55, arr: 420, name: 'CloudVault' },
+                                { usage: 91, prob: 88, arr: 180, name: 'Nexus' },
+                                { usage: 58, prob: 42, arr: 250, name: 'DataFlow' },
+                                { usage: 45, prob: 28, arr: 340, name: 'Apex' },
+                                { usage: 78, prob: 72, arr: 160, name: 'Prism' },
+                                { usage: 82, prob: 78, arr: 200, name: 'Quantum' },
+                            ].map((d, i) => (
+                                <g key={d.name}>
+                                    <circle cx={30 + (d.usage / 100) * 250} cy={210 - (d.prob / 100) * 190} r={d.arr / 50}
+                                        fill={accent} opacity={0.4}
+                                        style={{ cursor: 'pointer', transition: 'all 0.2s' }}
+                                        onMouseEnter={e => { (e.target as SVGCircleElement).setAttribute('opacity', '0.8'); (e.target as SVGCircleElement).setAttribute('r', String(d.arr / 40)); }}
+                                        onMouseLeave={e => { (e.target as SVGCircleElement).setAttribute('opacity', '0.4'); (e.target as SVGCircleElement).setAttribute('r', String(d.arr / 50)); }}>
+                                        <title>{d.name}: {d.usage}% usage, {d.prob}% expansion, ${d.arr}K ARR</title>
+                                    </circle>
+                                    <text x={30 + (d.usage / 100) * 250} y={210 - (d.prob / 100) * 190 - d.arr / 45} textAnchor="middle" fontSize={6} fill="var(--text-muted)">{d.name}</text>
+                                </g>
+                            ))}
+                            <text x={160} y={218} textAnchor="middle" fontSize={7} fill="var(--text-secondary)">Usage Score →</text>
+                            <text x={14} y={110} textAnchor="middle" fontSize={7} fill="var(--text-secondary)" transform="rotate(-90 14 110)">Expansion % →</text>
+                        </svg>
+                    </div>
+                </div>
+
+                {/* Engagement */}
+                <div style={card}
+                    onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = `${accent}25`; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(249,115,22,0.08)'; }}>
+                    <div style={lbl}>Engagement Score — High vs Low Revenue Accounts</div>
+                    <svg width="100%" height="120" viewBox="0 0 300 120">
+                        <polyline points="30,30 60,28 90,25 120,22 150,20 180,18 210,16 230,15" stroke="#22c55e" strokeWidth={2} fill="none" />
+                        <polyline points="30,80 60,82 90,78 120,75 150,76 180,74 210,72 230,70" stroke="#ef4444" strokeWidth={2} fill="none" opacity={0.7} />
+                        <text x={240} y={18} fontSize={6} fill="#22c55e">Top Quartile</text>
+                        <text x={240} y={73} fontSize={6} fill="#ef4444">Bottom Quartile</text>
+                        <text x={130} y={116} textAnchor="middle" fontSize={7} fill="var(--text-secondary)">Last 6 Months →</text>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+export default function Contacts12Page() {
+    const template = getTemplateBySlug('crm-12');
+    if (!template) return null;
+    const { prev, next } = getAdjacentTemplates('crm-12');
+    return (
+        <CrmLayout template={template} prevTemplate={prev} nextTemplate={next} currentPage="contacts" accentColor={accent}>
+            <ContactsContent />
+        </CrmLayout>
+    );
+}

@@ -1,0 +1,208 @@
+'use client';
+
+import React, { useState } from 'react';
+import { getTemplateBySlug, getAdjacentTemplates } from '@/lib/registry';
+import { CrmLayout } from '@/components/crm-layout/CrmLayout';
+import { notFound } from 'next/navigation';
+import { motion } from 'framer-motion';
+import Link from 'next/link';
+import { STRATEGIC_OPPORTUNITIES, SECTOR_DIST, QUADRANT_DATA, COHORT_RL } from './data';
+import { QuadrantChart } from '@/components/charts/QuadrantChart';
+
+const ACCENT = 'var(--text-primary)';
+const PRIMARY_TEXT = 'var(--text-primary)';
+const SECONDARY_TEXT = 'var(--text-secondary)';
+const MUTED_TEXT = 'var(--text-muted)';
+const BORDER = 'var(--border)';
+
+type TextScale = 'compact' | 'standard' | 'large';
+
+const scaleSizes: Record<TextScale, { hero: string; label: string; meta: string }> = {
+    compact: { hero: '3rem', label: '0.6875rem', meta: '0.6875rem' },
+    standard: { hero: '4.5rem', label: '0.8125rem', meta: '0.75rem' },
+    large: { hero: '6rem', label: '1rem', meta: '0.875rem' },
+};
+
+const features = [
+    { title: 'Engagement Intelligence', desc: 'Fit scoring, quality metrics, and sector-level pattern analysis.', href: '/templates/crm-04/features' },
+    { title: 'Executive Access Mapping', desc: 'Principal hierarchy, board-level tracking, and multi-threading visibility.', href: '/templates/crm-04/contact' },
+    { title: 'Strategic Forecasting', desc: 'Scenario confidence estimates and portfolio-level strategic outlook.', href: '/templates/crm-04/analytics' },
+    { title: 'Portfolio Management', desc: 'Engagement register, partner load balancing, and phase tracking.', href: '/templates/crm-04/pipeline' },
+];
+
+export default function Crm04Page() {
+    const template = getTemplateBySlug('crm-04');
+    if (!template) return notFound();
+    const { prev, next } = getAdjacentTemplates('crm-04');
+    const [signalMode, setSignalMode] = useState(false);
+    const [textScale, setTextScale] = useState<TextScale>('standard');
+    const sz = scaleSizes[textScale];
+
+    return (
+        <CrmLayout template={template} prevTemplate={prev} nextTemplate={next} currentPage="overview" accentColor={ACCENT}>
+            <div style={{ background: 'var(--bg-primary)', minHeight: '100vh', fontFamily: "'Inter', 'Space Grotesk', sans-serif" }}
+                data-signal-mode={signalMode ? 'on' : 'off'}>
+
+                {/* ── CONTROLS BAR ────────────────────────────────────────────── */}
+                <div style={{ borderBottom: `1px solid ${BORDER}`, padding: '12px 56px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-primary)' }}>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                        <span style={{ fontSize: '0.6875rem', color: MUTED_TEXT, marginRight: 8 }}>Signal only</span>
+                        <button onClick={() => setSignalMode(v => !v)}
+                            style={{ width: 36, height: 20, borderRadius: 10, border: `1px solid ${signalMode ? ACCENT : BORDER}`, background: signalMode ? ACCENT : 'var(--bg-primary)', position: 'relative', cursor: 'pointer', transition: 'background 0.2s, border-color 0.2s' }}>
+                            <div style={{ width: 14, height: 14, borderRadius: '50%', background: signalMode ? 'var(--bg-primary)' : MUTED_TEXT, position: 'absolute', top: 2, left: signalMode ? 18 : 2, transition: 'left 0.2s, background 0.2s' }} />
+                        </button>
+                    </div>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                        {(['compact', 'standard', 'large'] as TextScale[]).map(s => (
+                            <button key={s} onClick={() => setTextScale(s)}
+                                style={{ padding: '4px 10px', border: `1px solid ${textScale === s ? ACCENT : BORDER}`, fontSize: '0.6875rem', color: textScale === s ? 'var(--bg-primary)' : MUTED_TEXT, background: textScale === s ? ACCENT : 'transparent', cursor: 'pointer', borderRadius: 3, textTransform: 'capitalize', transition: 'all 0.15s', fontFamily: 'inherit' }}>
+                                {s}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* ── HERO ───────────────────────────────────────────────────── */}
+                <section style={{ maxWidth: 1280, margin: '0 auto', padding: '80px 56px 64px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 480px', gap: 80, alignItems: 'start' }}>
+                        <div>
+                            <div style={{ display: 'inline-block', padding: '4px 12px', border: `1px solid ${BORDER}`, fontSize: '0.6875rem', color: MUTED_TEXT, letterSpacing: '0.04em', marginBottom: 32 }}>
+                                Minimal Precision · CRM-04 · Light-First
+                            </div>
+                            <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
+                                style={{ fontSize: sz.hero, fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 0.92, color: PRIMARY_TEXT, marginBottom: 28, fontFamily: "'Space Grotesk', sans-serif", transition: 'font-size 0.3s' }}>
+                                Strategic<br />Precision<br /><span style={{ fontWeight: 300, color: MUTED_TEXT }}>CRM</span>
+                            </motion.h1>
+                            <motion.p initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }}
+                                style={{ fontSize: '1rem', color: SECONDARY_TEXT, lineHeight: 1.8, maxWidth: 440, marginBottom: 36 }}
+                                className={signalMode ? 'secondary-metric' : ''}>
+                                Swiss-grid editorial design for modern enterprise sales teams who value signal over noise. Maximum whitespace. Minimum ambiguity.
+                            </motion.p>
+                            <div style={{ display: 'flex', gap: 12, marginBottom: 48 }}>
+                                <Link href="/templates/crm-04/dashboard"
+                                    style={{ padding: '12px 24px', background: ACCENT, color: 'var(--bg-primary)', fontWeight: 600, fontSize: '0.9375rem', textDecoration: 'none', border: `1px solid ${ACCENT}`, transition: 'transform 0.15s, opacity 0.15s' }}
+                                    onMouseEnter={e => { e.currentTarget.style.opacity = '0.85'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                                    onMouseLeave={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = ''; }}>
+                                    Open Dashboard
+                                </Link>
+                                <Link href="/templates/crm-04/pricing"
+                                    style={{ padding: '12px 24px', background: 'transparent', color: PRIMARY_TEXT, fontSize: '0.9375rem', textDecoration: 'none', border: `1px solid ${BORDER}`, transition: 'border-color 0.15s' }}
+                                    onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--text-muted)'}
+                                    onMouseLeave={e => e.currentTarget.style.borderColor = BORDER}>
+                                    Pricing
+                                </Link>
+                                <Link href="/templates/crm-04/features"
+                                    style={{ padding: '12px 24px', background: 'transparent', color: MUTED_TEXT, fontSize: '0.9375rem', textDecoration: 'none', transition: 'color 0.15s' }}
+                                    onMouseEnter={e => e.currentTarget.style.color = PRIMARY_TEXT}
+                                    onMouseLeave={e => e.currentTarget.style.color = MUTED_TEXT}>
+                                    Capabilities →
+                                </Link>
+                            </div>
+
+                            {/* Hero metrics — editorial style */}
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 32, borderTop: `1px solid ${BORDER}`, paddingTop: 32 }}>
+                                {[
+                                    { num: '64%', label: 'Strategic Conversion Rate' },
+                                    { num: '8.4', label: 'Revenue Quality Index' },
+                                    { num: '72%', label: 'High-Value Portfolio Share' },
+                                ].map(m => (
+                                    <div key={m.label}>
+                                        <p style={{ fontSize: sz.hero === '6rem' ? '3.5rem' : sz.hero === '3rem' ? '1.75rem' : '2.75rem', fontWeight: 700, letterSpacing: '-0.04em', fontFamily: "'Space Grotesk', sans-serif", color: PRIMARY_TEXT, lineHeight: 1, marginBottom: 8, transition: 'font-size 0.3s' }}>{m.num}</p>
+                                        <p style={{ fontSize: sz.label, color: MUTED_TEXT, lineHeight: 1.4, transition: 'font-size 0.3s' }}>{m.label}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Right — Quadrant preview */}
+                        <motion.div initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6, delay: 0.15 }}
+                            style={{ border: `1px solid ${BORDER}`, padding: '24px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                                <p style={{ fontSize: sz.label, fontWeight: 600, color: PRIMARY_TEXT }}>Engagement Quality Matrix</p>
+                                <Link href="/templates/crm-04/dashboard" style={{ fontSize: '0.75rem', color: MUTED_TEXT, textDecoration: 'none', transition: 'color 0.15s' }}
+                                    onMouseEnter={e => e.currentTarget.style.color = PRIMARY_TEXT} onMouseLeave={e => e.currentTarget.style.color = MUTED_TEXT}>
+                                    Full view →
+                                </Link>
+                            </div>
+                            <QuadrantChart points={QUADRANT_DATA}
+                                quadrantLabels={['Develop', 'Pursue', 'Deprioritize', 'Qualify']}
+                                monochromeMode height={240} xLabel="Engagement Value ($K)" yLabel="Strategic Fit" />
+                        </motion.div>
+                    </div>
+                </section>
+
+                {/* ── SECONDARY METRICS (hidden in signal mode) ───────────────── */}
+                <section className={signalMode ? 'secondary-metric' : ''} style={{ display: signalMode ? 'none' : 'block', borderTop: `1px solid ${BORDER}`, background: 'var(--bg-secondary)' }}>
+                    <div style={{ maxWidth: 1280, margin: '0 auto', padding: '40px 56px', display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 0 }}>
+                        {[
+                            { label: 'Avg Quality Score', value: '8.4' },
+                            { label: 'Enterprise Ratio', value: '61%' },
+                            { label: 'Cycle Length', value: '84d' },
+                            { label: 'Executive Access Rate', value: '58%' },
+                            { label: 'Client Fit Index', value: '7.9' },
+                            { label: 'Referral Influence', value: '31%' },
+                        ].map((m, i) => (
+                            <div key={m.label} style={{ padding: '20px 24px', borderRight: i < 5 ? `1px solid ${BORDER}` : 'none' }}>
+                                <p style={{ fontSize: '0.6875rem', color: MUTED_TEXT, marginBottom: 6 }}>{m.label}</p>
+                                <p style={{ fontSize: '1.5rem', fontWeight: 700, color: PRIMARY_TEXT, letterSpacing: '-0.03em', fontFamily: "'Space Grotesk', sans-serif" }}>{m.value}</p>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+
+                {/* ── CAPABILITIES ───────────────────────────────────────────── */}
+                <section style={{ maxWidth: 1280, margin: '0 auto', padding: '72px 56px' }}>
+                    <div style={{ marginBottom: 56, borderBottom: `1px solid ${BORDER}`, paddingBottom: 24 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                            <h2 style={{ fontSize: '1.875rem', fontWeight: 700, letterSpacing: '-0.03em', color: PRIMARY_TEXT, fontFamily: "'Space Grotesk', sans-serif" }}>Capabilities</h2>
+                            <Link href="/templates/crm-04/features" style={{ fontSize: '0.875rem', color: MUTED_TEXT, textDecoration: 'none', transition: 'color 0.15s' }}
+                                onMouseEnter={e => e.currentTarget.style.color = PRIMARY_TEXT} onMouseLeave={e => e.currentTarget.style.color = MUTED_TEXT}>
+                                Full capability list →
+                            </Link>
+                        </div>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 0 }}>
+                        {features.map((f, i) => (
+                            <Link key={f.title} href={f.href}
+                                style={{ padding: '32px', borderRight: i < 3 ? `1px solid ${BORDER}` : 'none', textDecoration: 'none', transition: 'background 0.15s', display: 'block', cursor: 'pointer' }}
+                                onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-secondary)'}
+                                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                                <p style={{ fontSize: '0.0625rem', color: 'transparent', userSelect: 'none' }}>{String(i + 1).padStart(2, '0')}</p>
+                                <p style={{ fontSize: '0.5rem', color: MUTED_TEXT, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 12 }}>0{i + 1}</p>
+                                <p style={{ fontSize: '1rem', fontWeight: 600, color: PRIMARY_TEXT, marginBottom: 12, letterSpacing: '-0.01em' }}>{f.title}</p>
+                                <p style={{ fontSize: '0.875rem', color: SECONDARY_TEXT, lineHeight: 1.7 }}>{f.desc}</p>
+                                <p style={{ fontSize: '0.8125rem', color: MUTED_TEXT, marginTop: 16, transition: 'color 0.15s' }} className="explore-link">Explore →</p>
+                            </Link>
+                        ))}
+                    </div>
+                </section>
+
+                {/* ── PRICING CTA ─────────────────────────────────────────────── */}
+                <section style={{ borderTop: `1px solid ${BORDER}`, background: 'var(--bg-secondary)' }}>
+                    <div style={{ maxWidth: 1280, margin: '0 auto', padding: '56px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 32 }}>
+                        <div>
+                            <h2 style={{ fontSize: '1.5rem', fontWeight: 700, letterSpacing: '-0.03em', color: PRIMARY_TEXT, fontFamily: "'Space Grotesk', sans-serif", marginBottom: 8 }}>
+                                An investment in decision clarity.
+                            </h2>
+                            <p style={{ fontSize: '0.9375rem', color: SECONDARY_TEXT, maxWidth: 440 }}>Three tiers. From boutique firm to enterprise intelligence. Starts at $490/mo.</p>
+                        </div>
+                        <div style={{ display: 'flex', gap: 12, flexShrink: 0 }}>
+                            <Link href="/templates/crm-04/pricing"
+                                style={{ padding: '12px 24px', background: ACCENT, color: 'var(--bg-primary)', fontSize: '0.9375rem', fontWeight: 600, textDecoration: 'none', transition: 'opacity 0.15s, transform 0.15s' }}
+                                onMouseEnter={e => { e.currentTarget.style.opacity = '0.85'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                                onMouseLeave={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = ''; }}>
+                                View Pricing
+                            </Link>
+                            <Link href="/templates/crm-04/dashboard"
+                                style={{ padding: '12px 24px', border: `1px solid ${BORDER}`, background: 'transparent', color: PRIMARY_TEXT, fontSize: '0.9375rem', fontWeight: 600, textDecoration: 'none', transition: 'border-color 0.15s' }}
+                                onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--text-muted)'}
+                                onMouseLeave={e => e.currentTarget.style.borderColor = BORDER}>
+                                Open Dashboard
+                            </Link>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </CrmLayout>
+    );
+}

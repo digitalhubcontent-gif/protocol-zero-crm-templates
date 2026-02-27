@@ -1,0 +1,131 @@
+'use client';
+
+import React from 'react';
+import { getTemplateBySlug, getAdjacentTemplates } from '@/lib/registry';
+import { CrmLayout } from '@/components/crm-layout/CrmLayout';
+import { MIRRORED_STAGES } from '../data';
+
+const bg = 'var(--bg-primary)';
+const card: React.CSSProperties = { background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: 8, padding: '20px 24px', transition: 'all 0.25s cubic-bezier(.4,0,.2,1)' };
+const lbl: React.CSSProperties = { fontSize: '0.625rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 14 };
+
+function PipelineContent() {
+    const maxStage = Math.max(...MIRRORED_STAGES.map(s => Math.max(s.countA, s.countB)));
+
+    return (
+        <div style={{ background: bg, minHeight: '100vh' }}>
+            <div style={{ padding: '24px 32px', maxWidth: 1400, margin: '0 auto' }}>
+                <div style={{ marginBottom: 20 }}>
+                    <h1 style={{ fontSize: '1.375rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>Opportunity Portfolio Comparison</h1>
+                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: '4px 0 0' }}>Stage distribution · Close date density · Revenue unit age · Risk exposure</p>
+                </div>
+
+                {/* Metrics */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 14, marginBottom: 20 }}>
+                    {[
+                        { label: 'Stage Count Δ', value: '+25', sub: 'A: 312 vs B: 287', color: '#22c55e' },
+                        { label: 'Close Probability Δ', value: '+7pp', sub: 'A: 61% vs B: 54%', color: '#22c55e' },
+                        { label: 'Pipeline Value Δ', value: '+$13M', sub: 'A: $84M vs B: $71M', color: '#22c55e' },
+                    ].map(m => (
+                        <div key={m.label} style={{ ...card, cursor: 'default' }}
+                            onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = `${m.color}30`; (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-3px)'; (e.currentTarget as HTMLDivElement).style.boxShadow = `0 8px 20px rgba(0,0,0,0.2)`; }}
+                            onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--border-subtle)'; (e.currentTarget as HTMLDivElement).style.transform = 'none'; (e.currentTarget as HTMLDivElement).style.boxShadow = 'none'; }}>
+                            <div style={{ fontSize: '0.5rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>{m.label}</div>
+                            <div style={{ fontSize: '2rem', fontWeight: 800, color: m.color, letterSpacing: '-0.03em', lineHeight: 1 }}>{m.value}</div>
+                            <div style={{ fontSize: '0.5625rem', color: 'var(--text-muted)', marginTop: 6 }}>{m.sub}</div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Tornado Chart (mirrored bars) */}
+                <div style={{ ...card, marginBottom: 20 }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--border-card)'; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--border-subtle)'; }}>
+                    <div style={lbl}>Stage Distribution — Tornado Comparison</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                        {MIRRORED_STAGES.map(s => (
+                            <div key={s.stage} style={{ display: 'grid', gridTemplateColumns: '1fr 100px 1fr', gap: 4, alignItems: 'center' }}>
+                                {/* Left bar (A) — grows from right to left */}
+                                <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 6 }}>
+                                    <span style={{ fontSize: '0.5rem', fontWeight: 700, color: '#3b82f6' }}>{s.countA}</span>
+                                    <div style={{ height: 20, background: 'var(--bg-card)', borderRadius: 3, width: '100%', display: 'flex', justifyContent: 'flex-end', overflow: 'hidden' }}>
+                                        <div style={{ width: `${(s.countA / maxStage) * 100}%`, height: '100%', background: '#3b82f6', borderRadius: 3, opacity: 0.6, transition: 'all 0.3s' }} />
+                                    </div>
+                                </div>
+                                {/* Center label */}
+                                <div style={{ textAlign: 'center', fontSize: '0.625rem', fontWeight: 600, color: 'var(--text-secondary)' }}>{s.stage}</div>
+                                {/* Right bar (B) */}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                    <div style={{ height: 20, background: 'var(--bg-card)', borderRadius: 3, width: '100%', display: 'flex', overflow: 'hidden' }}>
+                                        <div style={{ width: `${(s.countB / maxStage) * 100}%`, height: '100%', background: '#8b5cf6', borderRadius: 3, opacity: 0.6, transition: 'all 0.3s' }} />
+                                    </div>
+                                    <span style={{ fontSize: '0.5rem', fontWeight: 700, color: '#8b5cf6' }}>{s.countB}</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10, padding: '0 8px' }}>
+                        <span style={{ fontSize: '0.5rem', color: '#3b82f6', fontWeight: 600 }}>← AMER</span>
+                        <span style={{ fontSize: '0.5rem', color: '#8b5cf6', fontWeight: 600 }}>EMEA →</span>
+                    </div>
+                </div>
+
+                {/* Close Date Density + Deal Age */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+                    <div style={card}
+                        onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--border-card)'; }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--border-subtle)'; }}>
+                        <div style={lbl}>Close Date Density — A vs B</div>
+                        <svg width="100%" height="160" viewBox="0 0 300 160">
+                            <polyline points="30,140 60,130 90,110 120,85 150,60 180,40 210,25 240,15 270,10" stroke="#3b82f6" strokeWidth={2} fill="none" />
+                            <polyline points="30,140 60,135 90,125 120,105 150,85 180,65 210,50 240,40 270,32" stroke="#8b5cf6" strokeWidth={2} fill="none" />
+                            <text x={150} y={158} textAnchor="middle" fontSize={7} fill="#4b5563">Days to Close →</text>
+                        </svg>
+                        <div style={{ display: 'flex', gap: 14, marginTop: 4, justifyContent: 'center' }}>
+                            <span style={{ fontSize: '0.5rem', color: '#3b82f6', fontWeight: 600 }}>● AMER (steeper = faster)</span>
+                            <span style={{ fontSize: '0.5rem', color: '#8b5cf6', fontWeight: 600 }}>● EMEA</span>
+                        </div>
+                    </div>
+
+                    <div style={card}
+                        onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--border-card)'; }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--border-subtle)'; }}>
+                        <div style={lbl}>Revenue Unit Age Distribution</div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                            {[
+                                { bucket: '0-30 days', a: 65, b: 38 },
+                                { bucket: '31-60 days', a: 48, b: 52 },
+                                { bucket: '61-90 days', a: 32, b: 41 },
+                                { bucket: '91-120 days', a: 14, b: 28 },
+                                { bucket: '120+ days', a: 6, b: 18 },
+                            ].map(d => (
+                                <div key={d.bucket}>
+                                    <div style={{ fontSize: '0.5rem', color: 'var(--text-muted)', marginBottom: 2 }}>{d.bucket}</div>
+                                    <div style={{ display: 'flex', gap: 4 }}>
+                                        <div style={{ flex: 1, height: 12, background: 'var(--bg-card)', borderRadius: 3, display: 'flex', overflow: 'hidden' }}>
+                                            <div style={{ width: `${d.a}%`, height: '100%', background: '#3b82f6', borderRadius: 3, opacity: 0.6 }} />
+                                        </div>
+                                        <div style={{ flex: 1, height: 12, background: 'var(--bg-card)', borderRadius: 3, display: 'flex', overflow: 'hidden' }}>
+                                            <div style={{ width: `${d.b}%`, height: '100%', background: '#8b5cf6', borderRadius: 3, opacity: 0.6 }} />
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+export default function Pipeline11Page() {
+    const template = getTemplateBySlug('crm-11');
+    if (!template) return null;
+    const { prev, next } = getAdjacentTemplates('crm-11');
+    return (
+        <CrmLayout template={template} prevTemplate={prev} nextTemplate={next} currentPage="pipeline" accentColor="var(--crm-accent)">
+            <PipelineContent />
+        </CrmLayout>
+    );
+}

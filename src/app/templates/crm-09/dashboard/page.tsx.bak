@@ -1,0 +1,315 @@
+'use client';
+
+import React, { useState } from 'react';
+import { getTemplateBySlug, getAdjacentTemplates } from '@/lib/registry';
+import { CrmLayout } from '@/components/crm-layout/CrmLayout';
+import { GeoMap } from '@/components/charts/GeoMap';
+import {
+    REVENUE_BRIDGE, GEO_REGIONS, CONTRACT_DURATION,
+    FORECAST_ACCURACY, BOARD_REGISTER, RISK_ESCALATIONS,
+} from '../data';
+
+const accent = '#3b82f6';
+
+const card: React.CSSProperties = {
+    background: '#1e293b',
+    border: '1px solid rgba(59,130,246,0.1)',
+    borderRadius: 8,
+    padding: '20px 24px',
+};
+
+const lbl: React.CSSProperties = {
+    fontSize: '0.625rem', fontWeight: 700,
+    color: '#64748b',
+    textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 14,
+};
+
+function DashboardContent() {
+    const [boardMode, setBoardMode] = useState(false);
+    const [showEscalations, setShowEscalations] = useState(false);
+
+    const heroMetrics = [
+        { label: 'Quarterly Revenue Attainment', value: '103%', sub: 'vs Q2 target', color: accent },
+        { label: 'Forecast Confidence Index', value: '89%', sub: '8-quarter historical', color: '#22c55e' },
+        { label: 'Net Revenue Retention', value: '112%', sub: 'Expansion-driven', color: '#06b6d4' },
+    ];
+
+    const secondaryMetrics = [
+        { label: 'Enterprise Pipeline Coverage', value: '3.4x' },
+        { label: 'Large Deal Dependency', value: '38%' },
+        { label: 'Expansion ARR %', value: '22%' },
+        { label: 'Renewal Confidence', value: '91%' },
+        { label: 'Multi-Year Contract Ratio', value: '64%' },
+    ];
+
+    const riskColor = (tier: string) => tier === 'High' ? '#ef4444' : tier === 'Medium' ? '#f59e0b' : '#22c55e';
+    const catColor = (cat: string) => cat === 'Commit' ? '#06b6d4' : cat === 'Upside' ? '#f59e0b' : '#94a3b8';
+    const maxVal = Math.max(...REVENUE_BRIDGE.map(s => Math.abs(s.value)));
+    const maxDur = Math.max(...CONTRACT_DURATION.map(d => d.value));
+
+    const bgStyle = boardMode ? { background: '#ffffff', color: '#0f172a' } : { background: '#0f172a' };
+    const textPrimary = boardMode ? '#0f172a' : '#e2e8f0';
+    const textMuted = boardMode ? '#64748b' : '#475569';
+    const cardBg = boardMode ? '#f8fafc' : '#1e293b';
+    const borderC = boardMode ? 'rgba(0,0,0,0.08)' : 'rgba(59,130,246,0.1)';
+
+    return (
+        <div style={{ ...bgStyle, minHeight: '100vh', transition: 'all 0.3s' }}>
+            {/* Governance Status */}
+            <div style={{
+                background: 'rgba(34,197,94,0.06)', borderBottom: '1px solid rgba(34,197,94,0.15)',
+                padding: '8px 32px', fontFamily: 'monospace', fontSize: '0.6875rem',
+                display: 'flex', alignItems: 'center', gap: 24, color: textMuted,
+            }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 6px #22c55e', display: 'inline-block' }} />
+                    <span style={{ color: '#22c55e', fontWeight: 700 }}>GOVERNANCE STATUS: SOUND</span>
+                </span>
+                <span>Q2 2026</span>
+                <span>103% Attainment</span>
+                <span>Forecast Confidence: 89%</span>
+                <span style={{ color: '#f59e0b' }}>Risk Escalations: 2</span>
+            </div>
+
+            <div style={{ padding: '24px 32px', maxWidth: 1400, margin: '0 auto' }}>
+                {/* Header */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                    <div>
+                        <h1 style={{ fontSize: '1.375rem', fontWeight: 700, color: textPrimary, margin: 0 }}>Quarterly Executive Overview</h1>
+                        <p style={{ fontSize: '0.75rem', color: textMuted, margin: '4px 0 0' }}>Revenue governance · Forecast accuracy · Regional performance</p>
+                    </div>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                        <button onClick={() => setBoardMode(!boardMode)} style={{
+                            padding: '7px 16px', borderRadius: 5, cursor: 'pointer', fontSize: '0.6875rem', fontWeight: 700,
+                            background: boardMode ? accent : 'transparent', color: boardMode ? '#fff' : accent,
+                            border: `1px solid ${accent}`, transition: 'all 0.2s',
+                        }}>
+                            {boardMode ? '✓ Board Mode' : 'Board Mode'}
+                        </button>
+                        <button style={{
+                            padding: '7px 16px', borderRadius: 5, cursor: 'pointer', fontSize: '0.6875rem', fontWeight: 600,
+                            background: 'transparent', color: textMuted, border: `1px solid ${borderC}`,
+                        }}>
+                            Export to PDF
+                        </button>
+                    </div>
+                </div>
+
+                {boardMode && (
+                    <div style={{ padding: '10px 16px', background: `${accent}10`, border: `1px solid ${accent}25`, borderRadius: 6, marginBottom: 16, fontSize: '0.75rem', color: accent, fontWeight: 600 }}>
+                        Q2 2026 | Board Review | Prepared by Revenue Operations
+                    </div>
+                )}
+
+                {/* Hero KPIs */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 14, marginBottom: 12 }}>
+                    {heroMetrics.map(k => (
+                        <div key={k.label} style={{ background: cardBg, border: `1px solid ${borderC}`, borderRadius: 8, padding: '20px 24px', cursor: 'default', transition: 'all 0.2s' }}
+                            onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = `${k.color}50`; (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)'; }}
+                            onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = borderC; (e.currentTarget as HTMLDivElement).style.transform = 'none'; }}>
+                            <div style={{ fontSize: '0.5rem', color: textMuted, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6, fontWeight: 700 }}>{k.label}</div>
+                            <div style={{ fontSize: '2.25rem', fontWeight: 800, color: k.color, letterSpacing: '-0.04em', lineHeight: 1 }}>{k.value}</div>
+                            <div style={{ fontSize: '0.625rem', color: textMuted, marginTop: 8 }}>{k.sub}</div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Secondary Metrics */}
+                {!boardMode && (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 10, marginBottom: 20 }}>
+                        {secondaryMetrics.map(s => (
+                            <div key={s.label} style={{ background: cardBg, border: `1px solid ${borderC}`, borderRadius: 8, padding: '12px 14px', cursor: 'default', transition: 'all 0.15s' }}
+                                onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = `${accent}35`; }}
+                                onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = borderC; }}>
+                                <div style={{ fontSize: '0.45rem', color: textMuted, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4, fontWeight: 700 }}>{s.label}</div>
+                                <div style={{ fontSize: '1.25rem', fontWeight: 700, color: textPrimary }}>{s.value}</div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {/* Charts Row 1: Revenue Bridge + Geo Map */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
+                    {/* Revenue Bridge Waterfall */}
+                    <div style={{ background: cardBg, border: `1px solid ${borderC}`, borderRadius: 8, padding: '20px 24px' }}>
+                        <div style={lbl}>Quarterly Revenue Bridge — Q2 2026</div>
+                        <svg width={480} height={180} style={{ width: '100%', height: 'auto' }}>
+                            {REVENUE_BRIDGE.map((seg, i) => {
+                                const barW = 480 / REVENUE_BRIDGE.length - 12;
+                                const x = i * (480 / REVENUE_BRIDGE.length) + 6;
+                                const h = (Math.abs(seg.value) / maxVal) * 130;
+                                const y = seg.value >= 0 ? 145 - h : 145;
+                                return (
+                                    <g key={i}>
+                                        <rect x={x} y={y} width={barW} height={h} fill={seg.color} rx={3} opacity={0.85} />
+                                        <text x={x + barW / 2} y={y - 6} textAnchor="middle" fontSize={10} fontWeight={700} fill={seg.color} fontFamily="Inter, sans-serif">
+                                            {seg.value > 0 ? `$${seg.value}M` : `-$${Math.abs(seg.value)}M`}
+                                        </text>
+                                        <text x={x + barW / 2} y={165} textAnchor="middle" fontSize={7.5} fill={textMuted} fontFamily="Inter, sans-serif">
+                                            {seg.label}
+                                        </text>
+                                    </g>
+                                );
+                            })}
+                        </svg>
+                    </div>
+
+                    {/* Geographic Performance Map */}
+                    <div style={{ background: cardBg, border: `1px solid ${borderC}`, borderRadius: 8, padding: '20px 24px' }}>
+                        <div style={lbl}>Regional Revenue Attainment</div>
+                        <GeoMap regions={GEO_REGIONS} accent={accent} height={180} />
+                    </div>
+                </div>
+
+                {/* Charts Row 2: Contract Duration + Forecast Accuracy */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
+                    {/* Contract Duration */}
+                    <div style={{ background: cardBg, border: `1px solid ${borderC}`, borderRadius: 8, padding: '20px 24px' }}>
+                        <div style={lbl}>Contract Duration Distribution — Revenue Risk Profile</div>
+                        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, height: 140 }}>
+                            {CONTRACT_DURATION.map(d => (
+                                <div key={d.label} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, height: '100%', justifyContent: 'flex-end' }}>
+                                    <span style={{ fontSize: '0.625rem', fontWeight: 600, color: textMuted }}>${d.value}M</span>
+                                    <div style={{ width: '100%', background: d.color, borderRadius: '3px 3px 0 0', height: `${(d.value / maxDur) * 100}%`, minHeight: 4, opacity: 0.8, transition: 'all 0.2s', cursor: 'pointer' }}
+                                        onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.opacity = '1'; }}
+                                        onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.opacity = '0.8'; }} />
+                                </div>
+                            ))}
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
+                            {CONTRACT_DURATION.map(d => (
+                                <span key={d.label} style={{ flex: 1, textAlign: 'center', fontSize: '0.5rem', color: textMuted }}>{d.label}</span>
+                            ))}
+                        </div>
+                        {/* Multi-year target line */}
+                        <div style={{ marginTop: 12, padding: '6px 12px', background: `${accent}08`, borderRadius: 4, fontSize: '0.625rem', color: accent }}>
+                            Multi-year target: 60% → Current: 64% ✓
+                        </div>
+                    </div>
+
+                    {/* Forecast Accuracy Trend */}
+                    <div style={{ background: cardBg, border: `1px solid ${borderC}`, borderRadius: 8, padding: '20px 24px' }}>
+                        <div style={lbl}>Board Projection Accuracy — 8 Quarter Trend</div>
+                        <svg width={440} height={160} style={{ width: '100%', height: 'auto' }}>
+                            {/* ±5% tolerance band */}
+                            <rect x={50} y={30} width={380} height={80} fill={`${accent}08`} rx={2} />
+                            <line x1={50} y1={70} x2={430} y2={70} stroke={`${accent}30`} strokeWidth={1} strokeDasharray="4 3" />
+                            <text x={44} y={74} textAnchor="end" fontSize={7} fill={textMuted} fontFamily="monospace">0%</text>
+                            <text x={44} y={34} textAnchor="end" fontSize={7} fill={textMuted} fontFamily="monospace">+5%</text>
+                            <text x={44} y={114} textAnchor="end" fontSize={7} fill={textMuted} fontFamily="monospace">-5%</text>
+                            {/* Data points */}
+                            {FORECAST_ACCURACY.map((q, i) => {
+                                const x = 60 + (i / (FORECAST_ACCURACY.length - 1)) * 360;
+                                const y = 70 - (q.deviation / 5) * 40;
+                                const color = q.exceeded ? '#22c55e' : '#ef4444';
+                                return (
+                                    <g key={i}>
+                                        {i > 0 && (
+                                            <line
+                                                x1={60 + ((i - 1) / (FORECAST_ACCURACY.length - 1)) * 360}
+                                                y1={70 - (FORECAST_ACCURACY[i - 1].deviation / 5) * 40}
+                                                x2={x} y2={y}
+                                                stroke={accent} strokeWidth={1.5}
+                                            />
+                                        )}
+                                        <circle cx={x} cy={y} r={5} fill={color} stroke={boardMode ? '#fff' : '#0f172a'} strokeWidth={2} />
+                                        <text x={x} y={y - 10} textAnchor="middle" fontSize={8} fontWeight={700} fill={color} fontFamily="Inter, sans-serif">
+                                            {q.deviation > 0 ? '+' : ''}{q.deviation}%
+                                        </text>
+                                        <text x={x} y={145} textAnchor="middle" fontSize={7} fill={textMuted} fontFamily="Inter, sans-serif">{q.quarter}</text>
+                                    </g>
+                                );
+                            })}
+                        </svg>
+                    </div>
+                </div>
+
+                {/* Board Revenue Register */}
+                <div style={{ background: cardBg, border: `1px solid ${borderC}`, borderRadius: 8, padding: '20px 24px', marginBottom: 20 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+                        <div style={lbl}>Board Revenue Register</div>
+                        <span style={{ fontSize: '0.5625rem', color: textMuted }}>Sorted by Risk (High first)</span>
+                    </div>
+                    <div style={{ overflowX: 'auto' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.6875rem' }}>
+                            <thead>
+                                <tr style={{ background: boardMode ? '#f1f5f9' : '#0f172a' }}>
+                                    {['Division', 'ARR', 'Renewal Date', 'Risk Tier', 'Governance Phase', 'Board Projection', 'Executive Sponsor'].map(h => (
+                                        <th key={h} style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: textMuted, fontSize: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>{h}</th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {[...BOARD_REGISTER].sort((a, b) => {
+                                    const order = { High: 0, Medium: 1, Low: 2 };
+                                    return order[a.riskTier] - order[b.riskTier];
+                                }).map(row => (
+                                    <tr key={row.division}
+                                        style={{
+                                            borderTop: boardMode ? '1px solid #e2e8f0' : '1px solid rgba(255,255,255,0.04)',
+                                            borderLeft: row.riskTier === 'High' ? '3px solid #ef4444' : '3px solid transparent',
+                                            cursor: 'pointer', transition: 'background 0.15s',
+                                        }}
+                                        onMouseEnter={e => (e.currentTarget as HTMLTableRowElement).style.background = boardMode ? '#f1f5f9' : 'rgba(255,255,255,0.02)'}
+                                        onMouseLeave={e => (e.currentTarget as HTMLTableRowElement).style.background = 'transparent'}>
+                                        <td style={{ padding: '10px 12px', fontWeight: 600, color: textPrimary, whiteSpace: 'nowrap' }}>{row.division}</td>
+                                        <td style={{ padding: '10px 12px', fontWeight: 700, color: accent }}>{row.arr}</td>
+                                        <td style={{ padding: '10px 12px', color: textMuted, fontFamily: 'monospace', fontSize: '0.625rem' }}>{row.renewalDate}</td>
+                                        <td style={{ padding: '10px 12px' }}>
+                                            <span style={{ padding: '2px 8px', borderRadius: 3, fontSize: '0.5rem', fontWeight: 700, background: `${riskColor(row.riskTier)}18`, color: riskColor(row.riskTier) }}>
+                                                {row.riskTier}
+                                            </span>
+                                        </td>
+                                        <td style={{ padding: '10px 12px', color: textMuted, fontSize: '0.625rem' }}>{row.phase}</td>
+                                        <td style={{ padding: '10px 12px' }}>
+                                            <span style={{ padding: '2px 8px', borderRadius: 3, fontSize: '0.5rem', fontWeight: 700, background: `${catColor(row.category)}18`, color: catColor(row.category) }}>
+                                                {row.category}
+                                            </span>
+                                        </td>
+                                        <td style={{ padding: '10px 12px', color: textMuted }}>{row.sponsor}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {/* Risk Escalation Panel */}
+                <div style={{ background: '#ef444408', border: '1px solid #ef444425', borderRadius: 8, padding: '14px 20px' }}>
+                    <button onClick={() => setShowEscalations(!showEscalations)} style={{
+                        background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, width: '100%',
+                    }}>
+                        <span style={{ padding: '3px 10px', borderRadius: 10, background: '#ef444420', color: '#ef4444', fontSize: '0.625rem', fontWeight: 700 }}>
+                            2 Risk Escalations Pending Review
+                        </span>
+                        <span style={{ fontSize: '0.625rem', color: textMuted }}>{showEscalations ? '▲ Collapse' : '▼ Expand'}</span>
+                    </button>
+                    {showEscalations && (
+                        <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                            {RISK_ESCALATIONS.map((esc, i) => (
+                                <div key={i} style={{ padding: '12px 16px', background: boardMode ? '#fff' : '#1e293b', borderRadius: 6, borderLeft: '3px solid #ef4444' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                                        <span style={{ fontSize: '0.75rem', fontWeight: 700, color: textPrimary }}>{esc.asset}</span>
+                                        <span style={{ fontSize: '0.6875rem', fontWeight: 700, color: '#ef4444' }}>{esc.arr}</span>
+                                    </div>
+                                    <p style={{ fontSize: '0.625rem', color: textMuted, lineHeight: 1.6, margin: 0 }}>{esc.issue}</p>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+export default function Dashboard09Page() {
+    const template = getTemplateBySlug('crm-09');
+    if (!template) return null;
+    const { prev, next } = getAdjacentTemplates('crm-09');
+    return (
+        <CrmLayout template={template} prevTemplate={prev} nextTemplate={next} currentPage="dashboard" accentColor="#3b82f6">
+            <DashboardContent />
+        </CrmLayout>
+    );
+}

@@ -1,0 +1,97 @@
+'use client';
+
+import React, { useState } from 'react';
+import { getTemplateBySlug, getAdjacentTemplates } from '@/lib/registry';
+import { CrmLayout } from '@/components/crm-layout/CrmLayout';
+import { BI_INTEGRATIONS, SYNC_HEALTH_A, SYNC_HEALTH_B } from '../data';
+
+const bg = '#0a0a0b';
+const card: React.CSSProperties = { background: '#17171b', border: '1px solid rgba(255,255,255,0.04)', borderRadius: 8, padding: '20px 24px', transition: 'all 0.25s cubic-bezier(.4,0,.2,1)' };
+
+function IntegrationsContent() {
+    const [hovered, setHovered] = useState<string | null>(null);
+
+    return (
+        <div style={{ background: bg, minHeight: '100vh' }}>
+            <div style={{ padding: '24px 32px', maxWidth: 1400, margin: '0 auto' }}>
+                <div style={{ marginBottom: 24 }}>
+                    <h1 style={{ fontSize: '1.375rem', fontWeight: 700, color: '#f9fafb', margin: 0 }}>BI & Data Warehouse Layer</h1>
+                    <p style={{ fontSize: '0.75rem', color: '#4b5563', margin: '4px 0 0' }}>Data warehouse · BI platforms · CRM core · ETL pipeline</p>
+                </div>
+
+                {/* Data Sync Health — Both Segments */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 24 }}>
+                    {[SYNC_HEALTH_A, SYNC_HEALTH_B].map((s, i) => {
+                        const isStale = s.coverage < 100;
+                        const borderColor = i === 0 ? '#3b82f6' : '#8b5cf6';
+                        return (
+                            <div key={s.segment} style={{
+                                ...card, borderLeft: `3px solid ${borderColor}30`,
+                                fontFamily: 'monospace', fontSize: '0.6875rem', color: '#9ca3af',
+                            }}
+                                onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = `${borderColor}50`; }}
+                                onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,255,255,0.04)'; (e.currentTarget as HTMLDivElement).style.borderLeft = `3px solid ${borderColor}30`; }}>
+                                <div style={{ fontSize: '0.5rem', fontWeight: 700, color: borderColor, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>
+                                    SEGMENT {i === 0 ? 'A' : 'B'} — {s.segment}
+                                </div>
+                                <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+                                    <span>{s.source} sync: <strong style={{ color: isStale ? '#f59e0b' : '#22c55e' }}>{isStale ? '⚠' : '✓'} {s.lastSync}</strong></span>
+                                    <span>Records: <strong style={{ color: '#d1d5db' }}>{s.records.toLocaleString()}</strong></span>
+                                    <span>Coverage: <strong style={{ color: isStale ? '#f59e0b' : '#22c55e' }}>{s.coverage}%</strong></span>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+
+                {BI_INTEGRATIONS.map(cat => (
+                    <div key={cat.category} style={{ marginBottom: 24 }}>
+                        <div style={{ fontSize: '0.625rem', fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                            {cat.category}
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+                            {cat.items.map(int => {
+                                const isHov = hovered === `${cat.category}-${int.name}`;
+                                return (
+                                    <div key={int.name}
+                                        onMouseEnter={() => setHovered(`${cat.category}-${int.name}`)}
+                                        onMouseLeave={() => setHovered(null)}
+                                        style={{ ...card, borderColor: isHov ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.04)', transform: isHov ? 'translateY(-3px)' : 'none', boxShadow: isHov ? '0 8px 20px rgba(0,0,0,0.2)' : 'none', cursor: 'pointer' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                                            <span style={{ fontSize: '0.875rem', fontWeight: 700, color: '#f9fafb' }}>{int.name}</span>
+                                            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                                <span style={{ width: 6, height: 6, borderRadius: '50%', background: int.status === 'connected' ? '#22c55e' : '#6b7280', display: 'inline-block' }} />
+                                                <span style={{ fontSize: '0.5rem', color: int.status === 'connected' ? '#22c55e' : '#6b7280', fontWeight: 600 }}>
+                                                    {int.status === 'connected' ? 'Connected' : 'Available'}
+                                                </span>
+                                            </span>
+                                        </div>
+                                        <p style={{ fontSize: '0.625rem', color: '#6b7280', lineHeight: 1.6, margin: 0 }}>{int.desc}</p>
+                                        {int.status === 'available' && (
+                                            <button style={{ marginTop: 12, padding: '5px 12px', borderRadius: 4, fontSize: '0.5625rem', fontWeight: 600, background: 'rgba(255,255,255,0.06)', color: '#d1d5db', border: 'none', cursor: 'pointer', transition: 'all 0.15s' }}
+                                                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.1)'; }}
+                                                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.06)'; }}>
+                                                Connect →
+                                            </button>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+export default function Integrations11Page() {
+    const template = getTemplateBySlug('crm-11');
+    if (!template) return null;
+    const { prev, next } = getAdjacentTemplates('crm-11');
+    return (
+        <CrmLayout template={template} prevTemplate={prev} nextTemplate={next} currentPage="integrations" accentColor="#e5e7eb">
+            <IntegrationsContent />
+        </CrmLayout>
+    );
+}

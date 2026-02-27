@@ -1,0 +1,207 @@
+'use client';
+
+import React from 'react';
+import { getTemplateBySlug, getAdjacentTemplates } from '@/lib/registry';
+import { CrmLayout } from '@/components/crm-layout/CrmLayout';
+import {
+    EXEC_MEETING_TREND, ENGAGEMENT_FREQUENCY,
+    REGION_ACTIVITY, PROPOSAL_CONVERSION,
+} from '../data';
+
+const accent = '#3b82f6';
+const card: React.CSSProperties = { background: 'var(--bg-card)', border: '1px solid rgba(59,130,246,0.1)', borderRadius: 8, padding: '20px 24px' };
+const lbl: React.CSSProperties = { fontSize: '0.625rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 14 };
+
+function ActivityContent() {
+    const maxMeetings = Math.max(...EXEC_MEETING_TREND.map(d => d.meetings));
+    const maxFreq = Math.max(...ENGAGEMENT_FREQUENCY.map(d => d.interactions));
+    const maxRegion = Math.max(...REGION_ACTIVITY.values.flat());
+
+    return (
+        <div style={{ background: 'var(--bg-primary)', minHeight: '100vh' }}>
+            <div style={{ padding: '28px 32px', maxWidth: 1400, margin: '0 auto' }}>
+                <div style={{ marginBottom: 24 }}>
+                    <h1 style={{ fontSize: '1.375rem', fontWeight: 700, color: 'var(--text-secondary)', margin: 0 }}>Strategic Interaction Log</h1>
+                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: '4px 0 0' }}>Executive meetings · Engagement cadence · Regional distribution · Proposal conversion</p>
+                </div>
+
+                {/* Activity Summary Strip */}
+                <div style={{
+                    background: `${accent}06`, border: `1px solid ${accent}15`, borderRadius: 8,
+                    padding: '12px 20px', marginBottom: 20, fontFamily: 'monospace', fontSize: '0.6875rem',
+                    color: 'var(--text-muted)', display: 'flex', gap: 24, flexWrap: 'wrap',
+                }}>
+                    <span><strong style={{ color: 'var(--text-secondary)' }}>This Quarter:</strong></span>
+                    <span>42 Executive Meetings</span>
+                    <span>·</span>
+                    <span>8 Board-Level Interactions</span>
+                    <span>·</span>
+                    <span>16 Proposal Reviews</span>
+                    <span>·</span>
+                    <span style={{ color: accent, fontWeight: 700 }}>$92M covered</span>
+                </div>
+
+                {/* Row 1: Meeting Trend + Engagement Frequency */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
+                    {/* Executive Meeting Trend */}
+                    <div style={card}>
+                        <div style={lbl}>Strategic Meeting Cadence (24 Weeks)</div>
+                        <svg width={480} height={160} style={{ width: '100%', height: 'auto' }}>
+                            {/* Target band (4-10/week) */}
+                            <rect x={40} y={160 - (10 / maxMeetings) * 120 - 10} width={420} height={(6 / maxMeetings) * 120} fill={`${accent}06`} rx={2} />
+                            <text x={35} y={160 - (10 / maxMeetings) * 120 - 2} textAnchor="end" fontSize={7} fill="#64748b" fontFamily="monospace">10</text>
+                            <text x={35} y={160 - (4 / maxMeetings) * 120 - 2} textAnchor="end" fontSize={7} fill="#64748b" fontFamily="monospace">4</text>
+                            {/* Line */}
+                            <polyline
+                                points={EXEC_MEETING_TREND.map((d, i) => {
+                                    const x = 45 + (i / (EXEC_MEETING_TREND.length - 1)) * 410;
+                                    const y = 150 - (d.meetings / maxMeetings) * 120;
+                                    return `${x},${y}`;
+                                }).join(' ')}
+                                fill="none" stroke={accent} strokeWidth={1.5}
+                            />
+                            {/* Dots */}
+                            {EXEC_MEETING_TREND.map((d, i) => {
+                                const x = 45 + (i / (EXEC_MEETING_TREND.length - 1)) * 410;
+                                const y = 150 - (d.meetings / maxMeetings) * 120;
+                                const inTarget = d.meetings >= 4 && d.meetings <= 10;
+                                return (
+                                    <circle key={i} cx={x} cy={y} r={3} fill={inTarget ? accent : '#f59e0b'} stroke="#0f172a" strokeWidth={1.5}>
+                                        <title>{d.week}: {d.meetings} meetings</title>
+                                    </circle>
+                                );
+                            })}
+                        </svg>
+                    </div>
+
+                    {/* Engagement Frequency */}
+                    <div style={card}>
+                        <div style={lbl}>Strategic Interaction Frequency</div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                            {ENGAGEMENT_FREQUENCY.map(d => {
+                                const minThreshold = 20;
+                                return (
+                                    <div key={d.account} style={{ display: 'grid', gridTemplateColumns: '130px 1fr 40px', gap: 8, alignItems: 'center' }}>
+                                        <span style={{ fontSize: '0.5625rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.account}</span>
+                                        <div style={{ height: 10, background: 'var(--bg-card)', borderRadius: 3, position: 'relative' }}>
+                                            <div style={{ width: `${(d.interactions / maxFreq) * 100}%`, height: '100%', background: d.interactions >= minThreshold ? accent : '#f59e0b', borderRadius: 3, opacity: 0.8 }} />
+                                            {/* Threshold line */}
+                                            <div style={{ position: 'absolute', left: `${(minThreshold / maxFreq) * 100}%`, top: -2, height: 14, width: 1, background: '#ef4444', opacity: 0.6 }} />
+                                        </div>
+                                        <span style={{ fontSize: '0.5625rem', color: d.interactions >= minThreshold ? accent : '#f59e0b', fontWeight: 600, textAlign: 'right' }}>{d.interactions}</span>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        <div style={{ marginTop: 10, fontSize: '0.5rem', color: 'var(--text-muted)' }}>
+                            <span style={{ display: 'inline-block', width: 8, height: 8, background: '#ef4444', borderRadius: 1, marginRight: 4, verticalAlign: 'middle', opacity: 0.6 }} />
+                            Minimum threshold: 20 interactions/quarter
+                        </div>
+                    </div>
+                </div>
+
+                {/* Row 2: Activity Heatmap + Proposal Conversion */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+                    {/* Activity by Region Heatmap */}
+                    <div style={card}>
+                        <div style={lbl}>Strategic Activity Distribution by Region</div>
+                        <div style={{ overflowX: 'auto' }}>
+                            <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 3 }}>
+                                <thead>
+                                    <tr>
+                                        <th style={{ padding: '3px 6px', fontSize: '0.45rem', color: 'var(--text-muted)', textAlign: 'left', fontWeight: 700 }}>Region</th>
+                                        {REGION_ACTIVITY.types.map(t => (
+                                            <th key={t} style={{ padding: '3px 4px', fontSize: '0.4rem', color: 'var(--text-muted)', textAlign: 'center', fontWeight: 700, minWidth: 48 }}>{t}</th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {REGION_ACTIVITY.regions.map((r, ri) => (
+                                        <tr key={r}>
+                                            <td style={{ padding: '2px 6px', fontSize: '0.5625rem', color: 'var(--text-muted)', fontWeight: 600 }}>{r}</td>
+                                            {REGION_ACTIVITY.types.map((_, ci) => {
+                                                const val = REGION_ACTIVITY.values[ri][ci];
+                                                const intensity = Math.round((val / maxRegion) * 200).toString(16).padStart(2, '0');
+                                                return (
+                                                    <td key={ci} style={{ padding: '2px' }}>
+                                                        <div style={{ height: 26, borderRadius: 3, background: `${accent}${intensity}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                            <span style={{ fontSize: '0.5rem', fontWeight: 700, color: val / maxRegion > 0.6 ? 'rgba(0,0,0,0.7)' : '#e2e8f0' }}>{val}</span>
+                                                        </div>
+                                                    </td>
+                                                );
+                                            })}
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    {/* Proposal Conversion Line */}
+                    <div style={card}>
+                        <div style={lbl}>Proposal Conversion Rate — Enterprise Portfolio</div>
+                        <svg width={440} height={180} style={{ width: '100%', height: 'auto' }}>
+                            {/* Grid lines */}
+                            {[20, 30, 40, 50].map(v => {
+                                const y = 160 - ((v - 15) / 40) * 130;
+                                return (
+                                    <g key={v}>
+                                        <line x1={50} y1={y} x2={420} y2={y} stroke="rgba(255,255,255,0.05)" strokeWidth={0.5} />
+                                        <text x={44} y={y + 3} textAnchor="end" fontSize={7} fill="#64748b" fontFamily="monospace">{v}%</text>
+                                    </g>
+                                );
+                            })}
+                            {/* Benchmark line */}
+                            <polyline
+                                points={PROPOSAL_CONVERSION.map((d, i) => {
+                                    const x = 55 + (i / (PROPOSAL_CONVERSION.length - 1)) * 360;
+                                    const y = 160 - ((d.benchmark - 15) / 40) * 130;
+                                    return `${x},${y}`;
+                                }).join(' ')}
+                                fill="none" stroke="#94a3b8" strokeWidth={1} strokeDasharray="4 3"
+                            />
+                            {/* Actual line */}
+                            <polyline
+                                points={PROPOSAL_CONVERSION.map((d, i) => {
+                                    const x = 55 + (i / (PROPOSAL_CONVERSION.length - 1)) * 360;
+                                    const y = 160 - ((d.rate - 15) / 40) * 130;
+                                    return `${x},${y}`;
+                                }).join(' ')}
+                                fill="none" stroke={accent} strokeWidth={2}
+                            />
+                            {PROPOSAL_CONVERSION.map((d, i) => {
+                                const x = 55 + (i / (PROPOSAL_CONVERSION.length - 1)) * 360;
+                                const y = 160 - ((d.rate - 15) / 40) * 130;
+                                return (
+                                    <g key={i}>
+                                        <circle cx={x} cy={y} r={4} fill={accent} stroke="#0f172a" strokeWidth={2} />
+                                        <text x={x} y={170} textAnchor="middle" fontSize={7} fill="#64748b" fontFamily="Inter, sans-serif">{d.quarter}</text>
+                                    </g>
+                                );
+                            })}
+                        </svg>
+                        <div style={{ display: 'flex', gap: 14, marginTop: 6 }}>
+                            {[['Actual', accent, false], ['Industry Avg', '#94a3b8', true]].map(([l, c, dashed]) => (
+                                <div key={l as string} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                    <div style={{ width: 16, height: 2, background: c as string, borderRadius: 1, ...(dashed ? { backgroundImage: `repeating-linear-gradient(90deg, ${c} 0, ${c} 4px, transparent 4px, transparent 7px)`, background: 'transparent' } : {}) }} />
+                                    <span style={{ fontSize: '0.45rem', color: 'var(--text-muted)' }}>{l}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+export default function Activity09Page() {
+    const template = getTemplateBySlug('crm-09');
+    if (!template) return null;
+    const { prev, next } = getAdjacentTemplates('crm-09');
+    return (
+        <CrmLayout template={template} prevTemplate={prev} nextTemplate={next} currentPage="activity" accentColor={accent}>
+            <ActivityContent />
+        </CrmLayout>
+    );
+}

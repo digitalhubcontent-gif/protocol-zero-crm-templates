@@ -1,0 +1,111 @@
+'use client';
+
+import React from 'react';
+import Link from 'next/link';
+import { getTemplateBySlug, getAdjacentTemplates } from '@/lib/registry';
+import { CrmLayout } from '@/components/crm-layout/CrmLayout';
+import { SEGMENT_A, SEGMENT_B, TOP_DELTAS, COMPARATIVE_METRICS, DUAL_REVENUE_LINE } from './data';
+
+const green = '#22c55e';
+const red = '#ef4444';
+const bg = 'var(--bg-primary)';
+
+function Hero() {
+    const significantCount = COMPARATIVE_METRICS.filter(m => m.significant).length;
+
+    return (
+        <div style={{ background: bg, minHeight: '100vh' }}>
+            <div style={{ padding: '60px 32px 40px', maxWidth: 1200, margin: '0 auto', textAlign: 'center' }}>
+                <div style={{ display: 'inline-block', padding: '4px 14px', borderRadius: 20, background: 'var(--bg-card)', border: '1px solid var(--border-card)', color: 'var(--text-secondary)', fontSize: '0.5625rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 20 }}>
+                    Comparative Revenue Intelligence
+                </div>
+
+                <h1 style={{ fontSize: 'clamp(2rem, 4vw, 3.2rem)', fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 16px', letterSpacing: '-0.04em', lineHeight: 1.1 }}>
+                    Every metric.<br />
+                    <span style={{ color: '#3b82f6' }}>A</span> vs <span style={{ color: '#8b5cf6' }}>B</span>. Always.
+                </h1>
+
+                <p style={{ fontSize: '1rem', color: 'var(--text-muted)', maxWidth: 520, margin: '0 auto 32px', lineHeight: 1.7 }}>
+                    Purpose-built dual-pane layout where variance is the insight. Compare regions, reps, industries, or any segment.
+                </p>
+
+                <Link href="/templates/crm-11/dashboard" style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 8,
+                    padding: '12px 28px', borderRadius: 8,
+                    background: 'var(--bg-card)', border: '1px solid var(--border-card)',
+                    color: 'var(--text-primary)', fontSize: '0.875rem', fontWeight: 700, textDecoration: 'none',
+                    transition: 'all 0.25s cubic-bezier(.4,0,.2,1)',
+                }}
+                    onMouseEnter={(e) => { const t = e.currentTarget as HTMLAnchorElement; t.style.background = 'var(--bg-card-hover)'; t.style.transform = 'translateY(-2px)'; t.style.boxShadow = '0 8px 24px rgba(0,0,0,0.3)'; }}
+                    onMouseLeave={(e) => { const t = e.currentTarget as HTMLAnchorElement; t.style.background = 'var(--bg-card)'; t.style.transform = 'none'; t.style.boxShadow = 'none'; }}>
+                    Open Comparative Overview →
+                </Link>
+            </div>
+
+            {/* Delta Preview */}
+            <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 32px 40px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: 0, marginBottom: 20 }}>
+                    <div style={{ padding: '14px 20px', background: 'rgba(59,130,246,0.05)', borderLeft: '3px solid rgba(59,130,246,0.3)', borderRadius: '8px 0 0 0' }}>
+                        <div style={{ fontSize: '0.5rem', fontWeight: 700, color: '#3b82f6', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>SEGMENT A</div>
+                        <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-secondary)' }}>{SEGMENT_A.label}</div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', padding: '0 16px', background: 'var(--bg-card)' }}>
+                        <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--bg-card)', border: '1px solid var(--border-card)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700 }}>⇄</div>
+                    </div>
+                    <div style={{ padding: '14px 20px', background: 'rgba(139,92,246,0.05)', borderLeft: '3px solid rgba(139,92,246,0.3)', borderRadius: '0 8px 0 0' }}>
+                        <div style={{ fontSize: '0.5rem', fontWeight: 700, color: '#8b5cf6', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>SEGMENT B</div>
+                        <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-secondary)' }}>{SEGMENT_B.label}</div>
+                    </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, marginBottom: 20 }}>
+                    {TOP_DELTAS.map(d => (
+                        <div key={d.metric} style={{
+                            padding: '16px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: 8,
+                            textAlign: 'center', transition: 'all 0.25s cubic-bezier(.4,0,.2,1)', cursor: 'pointer',
+                        }}
+                            onMouseEnter={e => { const t = e.currentTarget as HTMLDivElement; t.style.borderColor = `${d.direction === 'positive' ? green : red}30`; t.style.transform = 'translateY(-3px)'; t.style.boxShadow = `0 8px 20px rgba(0,0,0,0.2)`; }}
+                            onMouseLeave={e => { const t = e.currentTarget as HTMLDivElement; t.style.borderColor = 'var(--border-subtle)'; t.style.transform = 'none'; t.style.boxShadow = 'none'; }}>
+                            <div style={{ fontSize: '0.5rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>{d.metric}</div>
+                            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: d.direction === 'positive' ? green : red, letterSpacing: '-0.03em' }}>{d.delta}</div>
+                            <div style={{ fontSize: '0.5625rem', color: 'var(--text-muted)', marginTop: 4 }}>A: {d.valueA} · B: {d.valueB}</div>
+                        </div>
+                    ))}
+                </div>
+
+                {significantCount > 0 && (
+                    <div style={{ padding: '10px 16px', background: 'rgba(239,68,68,0.04)', border: '1px solid rgba(239,68,68,0.1)', borderRadius: 6, display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.6875rem', color: '#ef4444', fontWeight: 600 }}>
+                        <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#ef4444', display: 'inline-block' }} />
+                        {significantCount} SIGNIFICANT VARIANCES DETECTED
+                    </div>
+                )}
+            </div>
+
+            {/* Sparkline */}
+            <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 32px 60px' }}>
+                <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: 8, padding: '16px 20px' }}>
+                    <div style={{ fontSize: '0.5rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>ARR Trend — 12 Months</div>
+                    <svg width="100%" height="80" viewBox="0 0 500 80" preserveAspectRatio="none">
+                        <polyline points={DUAL_REVENUE_LINE.map((d, i) => `${i * (500 / 11)},${80 - (d.valueA - 14) * 10}`).join(' ')} stroke="#3b82f6" strokeWidth={2} fill="none" />
+                        <polyline points={DUAL_REVENUE_LINE.map((d, i) => `${i * (500 / 11)},${80 - (d.valueB - 14) * 10}`).join(' ')} stroke="#8b5cf6" strokeWidth={2} fill="none" />
+                    </svg>
+                    <div style={{ display: 'flex', gap: 16, marginTop: 6 }}>
+                        <span style={{ fontSize: '0.5rem', color: '#3b82f6', fontWeight: 600 }}>● {SEGMENT_A.label}</span>
+                        <span style={{ fontSize: '0.5rem', color: '#8b5cf6', fontWeight: 600 }}>● {SEGMENT_B.label}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+export default function CRM11LandingPage() {
+    const template = getTemplateBySlug('crm-11');
+    if (!template) return null;
+    const { prev, next } = getAdjacentTemplates('crm-11');
+    return (
+        <CrmLayout template={template} prevTemplate={prev} nextTemplate={next} currentPage="" accentColor="var(--crm-accent)">
+            <Hero />
+        </CrmLayout>
+    );
+}

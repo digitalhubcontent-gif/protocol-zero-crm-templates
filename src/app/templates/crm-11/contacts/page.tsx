@@ -1,0 +1,125 @@
+'use client';
+
+import React from 'react';
+import { getTemplateBySlug, getAdjacentTemplates } from '@/lib/registry';
+import { CrmLayout } from '@/components/crm-layout/CrmLayout';
+import { ORG_PENETRATION_A, ORG_PENETRATION_B } from '../data';
+
+const bg = 'var(--bg-primary)';
+const card: React.CSSProperties = { background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: 8, padding: '20px 24px', transition: 'all 0.25s cubic-bezier(.4,0,.2,1)' };
+const lbl: React.CSSProperties = { fontSize: '0.625rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 14 };
+const roles = ['economic', 'champion', 'technical', 'legal', 'executive'] as const;
+const roleLabels = { economic: 'Economic', champion: 'Champion', technical: 'Technical', legal: 'Legal', executive: 'Executive' };
+
+function ContactsContent() {
+    const heatColor = (v: number) => v === 0 ? '#17171b' : v <= 1 ? '#22c55e30' : v <= 3 ? '#22c55e60' : '#22c55e90';
+
+    return (
+        <div style={{ background: bg, minHeight: '100vh' }}>
+            <div style={{ padding: '24px 32px', maxWidth: 1400, margin: '0 auto' }}>
+                <div style={{ marginBottom: 20 }}>
+                    <h1 style={{ fontSize: '1.375rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>Account Penetration Comparison</h1>
+                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: '4px 0 0' }}>Org depth · Engagement intensity · Decision maker ratio · Influence structure</p>
+                </div>
+
+                {/* Metrics */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 14, marginBottom: 20 }}>
+                    {[
+                        { label: 'Multi-Threading Δ', value: '+1.3', sub: 'A: 3.4 avg vs B: 2.1 avg', color: '#22c55e' },
+                        { label: 'Engagement Δ', value: '+1.4', sub: 'A: 7.2/10 vs B: 5.8/10', color: '#22c55e' },
+                        { label: 'Decision Maker Ratio', value: '+14pp', sub: 'A: 42% vs B: 28%', color: '#22c55e' },
+                    ].map(m => (
+                        <div key={m.label} style={{ ...card, cursor: 'default' }}
+                            onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = `${m.color}30`; (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-3px)'; (e.currentTarget as HTMLDivElement).style.boxShadow = `0 8px 20px rgba(0,0,0,0.2)`; }}
+                            onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--border-subtle)'; (e.currentTarget as HTMLDivElement).style.transform = 'none'; (e.currentTarget as HTMLDivElement).style.boxShadow = 'none'; }}>
+                            <div style={{ fontSize: '0.5rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>{m.label}</div>
+                            <div style={{ fontSize: '2rem', fontWeight: 800, color: m.color, letterSpacing: '-0.03em', lineHeight: 1 }}>{m.value}</div>
+                            <div style={{ fontSize: '0.5625rem', color: 'var(--text-muted)', marginTop: 6 }}>{m.sub}</div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Dual Org Penetration Heatmap */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
+                    {[
+                        { title: 'AMER Org Penetration', data: ORG_PENETRATION_A, color: '#3b82f6' },
+                        { title: 'EMEA Org Penetration', data: ORG_PENETRATION_B, color: '#8b5cf6' },
+                    ].map(panel => (
+                        <div key={panel.title} style={{ ...card, borderLeft: `3px solid ${panel.color}30` }}
+                            onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = `${panel.color}50`; }}
+                            onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--border-subtle)'; (e.currentTarget as HTMLDivElement).style.borderLeft = `3px solid ${panel.color}30`; }}>
+                            <div style={{ ...lbl, color: panel.color }}>{panel.title}</div>
+                            <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 3 }}>
+                                <thead>
+                                    <tr>
+                                        <th style={{ padding: '3px 6px', fontSize: '0.4rem', color: 'var(--text-muted)', textAlign: 'left', fontWeight: 700 }}>Account</th>
+                                        {roles.map(r => (
+                                            <th key={r} style={{ padding: '3px', fontSize: '0.4rem', color: 'var(--text-muted)', textAlign: 'center', fontWeight: 700, minWidth: 40 }}>{roleLabels[r]}</th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {panel.data.map(row => (
+                                        <tr key={row.account}>
+                                            <td style={{ padding: '2px 6px', fontSize: '0.5rem', color: 'var(--text-muted)', fontWeight: 500, whiteSpace: 'nowrap' }}>{row.account}</td>
+                                            {roles.map(r => (
+                                                <td key={r} style={{ padding: '1px' }}>
+                                                    <div style={{ height: 20, borderRadius: 3, background: heatColor(row[r]), display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}>
+                                                        <span style={{ fontSize: '0.4375rem', fontWeight: 700, color: row[r] > 0 ? '#22c55e' : '#374151' }}>{row[r]}</span>
+                                                    </div>
+                                                </td>
+                                            ))}
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Contact Role Distribution */}
+                <div style={card}
+                    onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--border-card)'; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--border-subtle)'; }}>
+                    <div style={lbl}>Contact Role Distribution — A vs B</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                        {[
+                            { role: 'Economic Buyer', a: 11, b: 5 },
+                            { role: 'Champion', a: 12, b: 7 },
+                            { role: 'Technical', a: 20, b: 14 },
+                            { role: 'Legal', a: 6, b: 6 },
+                            { role: 'Executive', a: 9, b: 2 },
+                        ].map(d => (
+                            <div key={d.role} style={{ display: 'grid', gridTemplateColumns: '110px 1fr 1fr', gap: 8, alignItems: 'center' }}>
+                                <span style={{ fontSize: '0.625rem', color: 'var(--text-muted)', fontWeight: 500 }}>{d.role}</span>
+                                <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                                    <div style={{ flex: 1, height: 16, background: 'var(--bg-card)', borderRadius: 3, display: 'flex', overflow: 'hidden' }}>
+                                        <div style={{ width: `${(d.a / 20) * 100}%`, height: '100%', background: '#3b82f6', borderRadius: 3, opacity: 0.6 }} />
+                                    </div>
+                                    <span style={{ fontSize: '0.45rem', color: '#3b82f6', fontWeight: 700, width: 18, textAlign: 'right' }}>{d.a}</span>
+                                </div>
+                                <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                                    <div style={{ flex: 1, height: 16, background: 'var(--bg-card)', borderRadius: 3, display: 'flex', overflow: 'hidden' }}>
+                                        <div style={{ width: `${(d.b / 20) * 100}%`, height: '100%', background: '#8b5cf6', borderRadius: 3, opacity: 0.6 }} />
+                                    </div>
+                                    <span style={{ fontSize: '0.45rem', color: '#8b5cf6', fontWeight: 700, width: 18, textAlign: 'right' }}>{d.b}</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+export default function Contacts11Page() {
+    const template = getTemplateBySlug('crm-11');
+    if (!template) return null;
+    const { prev, next } = getAdjacentTemplates('crm-11');
+    return (
+        <CrmLayout template={template} prevTemplate={prev} nextTemplate={next} currentPage="contacts" accentColor="var(--crm-accent)">
+            <ContactsContent />
+        </CrmLayout>
+    );
+}

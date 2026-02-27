@@ -1,0 +1,108 @@
+import { getTemplateBySlug, getAdjacentTemplates } from '@/lib/registry';
+import { CrmLayout } from '@/components/crm-layout/CrmLayout';
+import Link from 'next/link';
+import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import { COMPLIANCE_STATUS, SECURITY_METRICS } from './data';
+
+export const metadata: Metadata = {
+    title: 'Apex Protocol — CRM 10',
+    description: 'Defense-grade compliance and revenue security platform.',
+};
+
+export default function Crm10Page() {
+    const template = getTemplateBySlug('crm-10');
+    if (!template) return notFound();
+    const { prev, next } = getAdjacentTemplates('crm-10');
+    const accent = template.accentColor;
+
+    return (
+        <CrmLayout template={template} prevTemplate={prev} nextTemplate={next} currentPage="landing" accentColor={accent}>
+            {/* APEX PROTOCOL — Ultra-dark, security-first, compliance-grade */}
+            <div style={{ background: 'var(--bg-primary)', minHeight: '100vh' }}>
+                {/* Security Status Bar */}
+                <div style={{
+                    background: COMPLIANCE_STATUS.overall >= 90 ? 'rgba(16,185,129,0.04)' : 'rgba(239,68,68,0.04)',
+                    borderBottom: `1px solid ${COMPLIANCE_STATUS.overall >= 90 ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)'}`,
+                    padding: '10px 48px', fontFamily: 'var(--font-mono, monospace)', fontSize: '0.6875rem',
+                    display: 'flex', alignItems: 'center', gap: 24, color: 'var(--text-muted)',
+                }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--bg-card)', boxShadow: '0 0 8px #10b981', display: 'inline-block' }} />
+                        <span style={{ color: '#10b981', fontWeight: 700, letterSpacing: '0.06em' }}>SECURITY STATUS: NOMINAL</span>
+                    </span>
+                    <span>Compliance Score: {COMPLIANCE_STATUS.overall}/100</span>
+                    <span>Frameworks: {COMPLIANCE_STATUS.frameworks.length} Active</span>
+                    <span style={{ color: '#f59e0b' }}>Open Violations: 3</span>
+                    <span style={{ color: 'var(--text-muted)' }}>Hash: 0x7a3f...b2c1</span>
+                </div>
+
+                {/* Hero */}
+                <div style={{ maxWidth: 1200, margin: '0 auto', padding: '100px 48px 60px' }}>
+                    <div style={{ marginBottom: 60 }}>
+                        <p style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: '0.6875rem', color: accent, letterSpacing: '0.14em', fontWeight: 700, marginBottom: 24 }}>
+                            APEX PROTOCOL · DEFENSE-GRADE COMPLIANCE
+                        </p>
+                        <h1 style={{ fontFamily: 'var(--font-display, Inter)', fontSize: 'clamp(2.5rem, 5vw, 4rem)', fontWeight: 800, lineHeight: 1, letterSpacing: '-0.04em', color: 'var(--text-primary)', marginBottom: 28 }}>
+                            Revenue Security<br />
+                            <span style={{ color: accent }}>Breach-Proof Protocol</span>
+                        </h1>
+                        <p style={{ fontSize: '1.125rem', color: 'var(--text-muted)', lineHeight: 1.8, maxWidth: 560 }}>
+                            Immutable audit trails, compliance gate enforcement, and multi-framework regulatory intelligence — every revenue action cryptographically verified.
+                        </p>
+                    </div>
+
+                    {/* Security Metrics Grid */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 60 }}>
+                        {SECURITY_METRICS.map(m => (
+                            <div key={m.label} style={{
+                                background: 'var(--bg-card)', border: '1px solid rgba(16,185,129,0.08)',
+                                borderRadius: 8, padding: '24px 20px',
+                            }}>
+                                <div style={{ fontSize: '0.5rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8, fontWeight: 700 }}>{m.label}</div>
+                                <div style={{ fontSize: '2rem', fontWeight: 800, color: m.color, letterSpacing: '-0.04em', lineHeight: 1 }}>{m.value}</div>
+                                <div style={{ fontSize: '0.625rem', color: 'var(--text-muted)', marginTop: 8 }}>{m.sub}</div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Framework Status */}
+                    <div style={{ background: 'var(--bg-card)', border: '1px solid rgba(16,185,129,0.08)', borderRadius: 8, padding: '24px 28px', marginBottom: 48 }}>
+                        <div style={{ fontSize: '0.625rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 16 }}>
+                            Active Compliance Frameworks
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12 }}>
+                            {COMPLIANCE_STATUS.frameworks.map(fw => (
+                                <div key={fw.name} style={{
+                                    background: 'var(--bg-primary)', border: `1px solid ${fw.status === 'compliant' ? 'rgba(16,185,129,0.15)' : 'rgba(245,158,11,0.15)'}`,
+                                    borderRadius: 6, padding: '14px 16px',
+                                }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                                        <span style={{ width: 6, height: 6, borderRadius: '50%', background: fw.status === 'compliant' ? '#10b981' : '#f59e0b', display: 'inline-block' }} />
+                                        <span style={{ fontSize: '0.5rem', color: fw.status === 'compliant' ? '#10b981' : '#f59e0b', fontWeight: 700, textTransform: 'uppercase' }}>{fw.status}</span>
+                                    </div>
+                                    <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: 4 }}>{fw.name}</div>
+                                    <div style={{ fontSize: '1.25rem', fontWeight: 800, color: accent }}>{fw.score}%</div>
+                                    <div style={{ fontSize: '0.5rem', color: 'var(--text-muted)', marginTop: 4 }}>Audit: {fw.auditDate}</div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* CTA */}
+                    <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+                        <Link href="/templates/crm-10/dashboard" style={{
+                            background: accent, color: 'var(--text-primary)', fontWeight: 700, fontSize: '0.875rem',
+                            padding: '14px 32px', borderRadius: 6, display: 'inline-block', letterSpacing: '-0.01em',
+                        }}>
+                            Enter Security Command Center
+                        </Link>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                            Immutable Logs · Compliance Gates · Hash Verification
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </CrmLayout>
+    );
+}

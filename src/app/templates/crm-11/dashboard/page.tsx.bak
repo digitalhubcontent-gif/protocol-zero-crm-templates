@@ -1,0 +1,123 @@
+'use client';
+
+import React from 'react';
+import { getTemplateBySlug, getAdjacentTemplates } from '@/lib/registry';
+import { CrmLayout } from '@/components/crm-layout/CrmLayout';
+import { DualPaneWrapper } from '@/components/charts/DualPaneWrapper';
+import { DeltaWaterfallChart } from '@/components/charts/DeltaWaterfallChart';
+import { ComparativeTable } from '@/components/charts/ComparativeTable';
+import { BarChart } from '@/components/charts/BarChart';
+import { FunnelChart } from '@/components/charts/FunnelChart';
+import { SEGMENT_A, SEGMENT_B, COMPARATIVE_METRICS, TOP_DELTAS, DELTA_WATERFALL, FUNNEL_A, FUNNEL_B, VARIANCE_BARS, DUAL_REVENUE_LINE } from '../data';
+
+const bg = '#0a0a0b';
+const card: React.CSSProperties = { background: '#17171b', border: '1px solid rgba(255,255,255,0.04)', borderRadius: 8, padding: '20px 24px', transition: 'all 0.25s cubic-bezier(.4,0,.2,1)' };
+
+function DashboardContent() {
+    const significantCount = COMPARATIVE_METRICS.filter(m => m.significant).length;
+
+    return (
+        <div style={{ background: bg, minHeight: '100vh' }}>
+            <div style={{ padding: '24px 32px', maxWidth: 1400, margin: '0 auto' }}>
+                <div style={{ marginBottom: 20 }}>
+                    <h1 style={{ fontSize: '1.375rem', fontWeight: 700, color: '#f9fafb', margin: 0 }}>Comparative Overview</h1>
+                    <p style={{ fontSize: '0.75rem', color: '#4b5563', margin: '4px 0 0' }}>Dual-pane revenue intelligence · Segment A vs B · Delta tracking</p>
+                </div>
+
+                <DualPaneWrapper
+                    segmentA={SEGMENT_A} segmentB={SEGMENT_B}
+                    topDeltas={TOP_DELTAS} significantCount={significantCount}
+                    childrenA={
+                        <div>
+                            {/* Hero Metrics A */}
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 16 }}>
+                                {[
+                                    { label: 'ARR', value: '$212M' },
+                                    { label: 'NRR', value: '114%' },
+                                    { label: 'Coverage', value: '3.4x' },
+                                ].map(m => (
+                                    <div key={m.label} style={{ ...card, padding: '12px 14px', cursor: 'default' }}
+                                        onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(59,130,246,0.2)'; (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)'; }}
+                                        onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,255,255,0.04)'; (e.currentTarget as HTMLDivElement).style.transform = 'none'; }}>
+                                        <div style={{ fontSize: '0.4375rem', fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>{m.label}</div>
+                                        <div style={{ fontSize: '1.375rem', fontWeight: 800, color: '#d1d5db', letterSpacing: '-0.03em' }}>{m.value}</div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Funnel A */}
+                            <div style={card}>
+                                <div style={{ fontSize: '0.5rem', fontWeight: 700, color: '#3b82f6', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>AMER Stage Funnel</div>
+                                <FunnelChart stages={FUNNEL_A.map(f => ({ label: f.label, count: f.count, conversion: f.conversion }))} accent="#3b82f6" height={180} />
+                            </div>
+                        </div>
+                    }
+                    childrenB={
+                        <div>
+                            {/* Hero Metrics B */}
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 16 }}>
+                                {[
+                                    { label: 'ARR', value: '$198M' },
+                                    { label: 'NRR', value: '107%' },
+                                    { label: 'Coverage', value: '2.9x' },
+                                ].map(m => (
+                                    <div key={m.label} style={{ ...card, padding: '12px 14px', cursor: 'default' }}
+                                        onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(139,92,246,0.2)'; (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)'; }}
+                                        onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,255,255,0.04)'; (e.currentTarget as HTMLDivElement).style.transform = 'none'; }}>
+                                        <div style={{ fontSize: '0.4375rem', fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>{m.label}</div>
+                                        <div style={{ fontSize: '1.375rem', fontWeight: 800, color: '#d1d5db', letterSpacing: '-0.03em' }}>{m.value}</div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Funnel B */}
+                            <div style={card}>
+                                <div style={{ fontSize: '0.5rem', fontWeight: 700, color: '#8b5cf6', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>EMEA Stage Funnel</div>
+                                <FunnelChart stages={FUNNEL_B.map(f => ({ label: f.label, count: f.count, conversion: f.conversion }))} accent="#8b5cf6" height={180} />
+                            </div>
+                        </div>
+                    }
+                />
+
+                {/* Insight Summary */}
+                <div style={{ margin: '20px 0', padding: '14px 20px', background: '#111113', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, fontStyle: 'italic', fontSize: '0.75rem', color: '#9ca3af', lineHeight: 1.8 }}>
+                    <strong style={{ color: '#d1d5db', fontStyle: 'normal' }}>AMER outperforms EMEA</strong> across revenue (+7.1%), retention (+7pp NRR), and pipeline coverage (+0.5x). Key divergence: EMEA shows stronger deal size median (+12%) but lower close rate (-6pp). Recommendation: Investigate EMEA qualification rigor.
+                </div>
+
+                {/* Delta Waterfall + Variance Bar */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
+                    <div style={card}
+                        onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,255,255,0.1)'; }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,255,255,0.04)'; }}>
+                        <DeltaWaterfallChart title="Revenue Delta Decomposition" segmentALabel="AMER" segmentBLabel="EMEA" components={DELTA_WATERFALL} height={200} />
+                    </div>
+                    <div style={card}
+                        onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,255,255,0.1)'; }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,255,255,0.04)'; }}>
+                        <div style={{ fontSize: '0.625rem', fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Metric Variance — A vs B</div>
+                        <BarChart bars={VARIANCE_BARS.map(v => ({ label: v.metric, value: v.delta, color: v.delta >= 0 ? '#22c55e' : '#ef4444' }))} height={200} />
+                    </div>
+                </div>
+
+                {/* Comparative Table */}
+                <div style={card}
+                    onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,255,255,0.1)'; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,255,255,0.04)'; }}>
+                    <div style={{ fontSize: '0.625rem', fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 14 }}>Comparative Revenue Grid</div>
+                    <ComparativeTable rows={COMPARATIVE_METRICS} segmentALabel="AMER" segmentBLabel="EMEA" />
+                </div>
+            </div>
+        </div>
+    );
+}
+
+export default function Dashboard11Page() {
+    const template = getTemplateBySlug('crm-11');
+    if (!template) return null;
+    const { prev, next } = getAdjacentTemplates('crm-11');
+    return (
+        <CrmLayout template={template} prevTemplate={prev} nextTemplate={next} currentPage="dashboard" accentColor="#e5e7eb">
+            <DashboardContent />
+        </CrmLayout>
+    );
+}

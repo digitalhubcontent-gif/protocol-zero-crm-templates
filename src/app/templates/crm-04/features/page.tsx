@@ -1,0 +1,134 @@
+'use client';
+
+import React, { useState } from 'react';
+import { getTemplateBySlug, getAdjacentTemplates } from '@/lib/registry';
+import { CrmLayout } from '@/components/crm-layout/CrmLayout';
+import { notFound } from 'next/navigation';
+import { motion } from 'framer-motion';
+import Link from 'next/link';
+
+const FEATURES = [
+    {
+        cat: 'Opportunity Intelligence', items: [
+            { name: 'Strategic Opportunity Register', desc: 'A ranked, filterable view of all high-value opportunities, with value, fit score, partner, phase, confidence, and cycle time in one structured table.' },
+            { name: 'Deal × Fit Quadrant Analysis', desc: 'Plot opportunities by deal size and strategic fit on an interactive 2×2 quadrant: Pursue, Qualify, Nurture, or Defer — instantly.' },
+            { name: 'Sector Distribution Matrix', desc: 'Breakdown of ARR and pipeline by vertical sector with YoY growth indicators and partner count per sector.' },
+            { name: 'Cycle Time Analytics', desc: 'Identify which phases cause deal friction. View average cycle time per phase, outliers, and benchmark comparisons.' },
+        ]
+    },
+    {
+        cat: 'Partner Management', items: [
+            { name: 'Partner Load Balancing', desc: 'Real-time view of opportunity distribution across partners. Spot imbalances and reassign deals in one click.' },
+            { name: 'Partner Performance Radar', desc: 'Multi-axis radar chart comparing each partner across 5 dimensions: Pipeline, Closings, Satisfaction, Reach, Engagement.' },
+            { name: 'Cohort NRR Retention Grid', desc: 'Sequential cohort analysis tracking net revenue retention per cohort quarter, using a monochrome heatmap for signal clarity.' },
+            { name: 'Interaction History Timeline', desc: 'Chronological event log of all principal interactions, outcome-tagged, and filterable by type and result.' },
+        ]
+    },
+    {
+        cat: 'Decision Intelligence', items: [
+            { name: 'Decision Trigger Engine', desc: '9 configurable triggers that fire when conditions change — high-urgency alerts sent to the right stakeholder automatically.' },
+            { name: 'Principal Influence Mapping', desc: 'Visualise stakeholder networks at each account level. Identify decision-makers, champions, and blockers at a glance.' },
+            { name: 'Automation Workflow Builder', desc: 'Build IF-THEN workflows without code. Pause, resume, and inspect running automations from one clean dashboard.' },
+            { name: 'Signal-Only Mode', desc: 'Remove all secondary UI elements with one toggle. Focuses your interface to only the data that matters right now.' },
+        ]
+    },
+    {
+        cat: 'Reporting & Data', items: [
+            { name: 'Report Template Library', desc: '8 structured report templates covering quarterly summaries, board packs, influence maps, and cohort analyses.' },
+            { name: 'Typography Scale Control', desc: 'Adjust the font size system across the entire interface (Compact / Standard / Large) for reading comfort and screen density.' },
+            { name: 'One-Click PDF Export', desc: 'Generate board-ready PDF reports from any report template in under 60 seconds. Formatted for print and presentation.' },
+            { name: '12+ Data Integrations', desc: 'Connect Salesforce, HubSpot, Looker, Stripe, Crossbeam, PartnerStack, Gong, and more via native integration connectors.' },
+        ]
+    },
+];
+
+export default function Crm04FeaturesPage() {
+    const template = getTemplateBySlug('crm-04');
+    if (!template) return notFound();
+    const { prev, next } = getAdjacentTemplates('crm-04');
+    const [activeCat, setActiveCat] = useState(FEATURES[0].cat);
+    const displayed = FEATURES.find(f => f.cat === activeCat)?.items || [];
+
+    return (
+        <CrmLayout template={template} prevTemplate={prev} nextTemplate={next} currentPage="features" accentColor="var(--text-primary)">
+            <div style={{ background: 'var(--bg-primary)', minHeight: '100vh', fontFamily: "'Inter', 'Space Grotesk', sans-serif", color: 'var(--text-primary)' }}>
+                <div style={{ borderBottom: '1px solid var(--border)', padding: '10px 40px' }}>
+                    <span style={{ fontSize: '0.625rem', color: 'var(--text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Features &nbsp;/&nbsp; Capabilities</span>
+                </div>
+                <div style={{ maxWidth: 1100, margin: '0 auto', padding: '60px 40px' }}>
+                    {/* Hero */}
+                    <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: 48, marginBottom: 48 }}>
+                        <p style={{ fontSize: '0.625rem', color: 'var(--text-muted)', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 16 }}>16 Capabilities</p>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 60, alignItems: 'end' }}>
+                            <div>
+                                <h1 style={{ fontSize: 'clamp(2rem, 4vw, 3.25rem)', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.04em', lineHeight: 1.05, margin: '0 0 20px' }}>
+                                    Built for precision.<br />Not performance.
+                                </h1>
+                                <p style={{ fontSize: '1rem', color: 'var(--text-secondary)', lineHeight: 1.8, maxWidth: 380 }}>
+                                    Every feature in Minimal Precision is designed around one question: does this help partnership leaders make clearer decisions faster?
+                                </p>
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0, border: '1px solid var(--border)' }}>
+                                {[
+                                    { l: 'Total Features', v: '16' },
+                                    { l: 'Integrations', v: '12+' },
+                                    { l: 'Report Templates', v: '8' },
+                                    { l: 'Automation Triggers', v: '9' },
+                                ].map((m, i) => (
+                                    <div key={m.l} style={{ padding: '18px 20px', borderRight: i % 2 === 0 ? '1px solid var(--border)' : 'none', borderBottom: i < 2 ? '1px solid var(--border)' : 'none' }}>
+                                        <p style={{ fontSize: '1.625rem', fontWeight: 800, letterSpacing: '-0.04em', color: 'var(--text-primary)', lineHeight: 1, marginBottom: 5 }}>{m.v}</p>
+                                        <p style={{ fontSize: '0.5rem', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{m.l}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Category tabs */}
+                    <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid var(--border)', marginBottom: 36 }}>
+                        {FEATURES.map(f => (
+                            <button key={f.cat} onClick={() => setActiveCat(f.cat)}
+                                style={{ padding: '10px 20px', background: 'transparent', border: 'none', borderBottom: activeCat === f.cat ? `2px solid var(--text-primary)` : '2px solid transparent', color: activeCat === f.cat ? 'var(--text-primary)' : 'var(--text-muted)', fontSize: '0.625rem', fontWeight: activeCat === f.cat ? 600 : 400, letterSpacing: '0.06em', cursor: 'pointer', fontFamily: 'inherit', transition: 'color 0.15s', whiteSpace: 'nowrap' }}>
+                                {f.cat}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Feature grid 2×2 */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0, border: '1px solid var(--border)', marginBottom: 48 }}>
+                        {displayed.map((item, i) => (
+                            <motion.div key={item.name} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.08 }}
+                                style={{ padding: '28px', borderRight: i % 2 === 0 ? '1px solid var(--border)' : 'none', borderBottom: i < 2 ? '1px solid var(--border)' : 'none', transition: 'background 0.15s', cursor: 'default' }}
+                                onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-secondary)'}
+                                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                                <p style={{ fontSize: '1rem', fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--text-primary)', marginBottom: 10 }}>{item.name}</p>
+                                <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', lineHeight: 1.8 }}>{item.desc}</p>
+                            </motion.div>
+                        ))}
+                    </div>
+
+                    <div style={{ textAlign: 'center' }}>
+                        <Link href="/templates/crm-04/pricing"
+                            style={{ padding: '13px 32px', background: 'var(--text-primary)', color: 'var(--bg-primary)', fontSize: '0.875rem', fontWeight: 600, textDecoration: 'none', display: 'inline-block', letterSpacing: '0.04em', transition: 'transform 0.15s, opacity 0.15s' }}
+                            onMouseEnter={e => { e.currentTarget.style.opacity = '0.85'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                            onMouseLeave={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = ''; }}>
+                            View Pricing →
+                        </Link>
+                    </div>
+                </div>
+
+                {/* Custom Development Banner */}
+                <div style={{ marginTop: 64, padding: '32px 40px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 24, flexWrap: 'wrap' }}>
+                    <div>
+                        <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>Need a custom CRM or SaaS platform?</h3>
+                        <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Hire the creator of PROTOCOL_ZERO to build your custom software.</p>
+                    </div>
+                    <a href="https://mail.google.com/mail/?view=cm&fs=1&to=digitalhubcontent@gmail.com&su=Custom%20Project%20Inquiry%20%E2%80%94%20PROTOCOL_ZERO&body=Hi%2C%0A%0AI%20came%20across%20your%20PROTOCOL_ZERO%20CRM%20templates.%0A%0AI%20am%20looking%20for%20a%20custom%20solution%20for%20my%20project.%20Here%20are%20some%20details%3A%0A%0AProject%20Type%3A%20%5BCRM%20%2F%20SaaS%20Dashboard%20%2F%20Enterprise%20Software%20%2F%20Other%5D%0ATimeline%3A%20%5BFlexible%20%2F%20Within%201%20month%20%2F%20Within%203%20months%5D%0ABudget%20Range%3A%20%5BOpen%20to%20discuss%5D%0A%0ABrief%20Description%3A%0A%5BPlease%20describe%20what%20you%20need%20built%5D%0A%0ALooking%20forward%20to%20hearing%20from%20you.%0A%0ABest%20regards%2C%0A%5BYour%20Name%5D'm%20impressed%20with%20the%20quality%20of%20your%20work.%0A%0AI'm%20looking%20for%20a%20custom%20solution%20for%20my%20project.%20Here%20are%20some%20details%3A%0A%0AProject%20Type%3A%20%5BCRM%20%2F%20SaaS%20Dashboard%20%2F%20Enterprise%20Software%20%2F%20Other%5D%0ATimeline%3A%20%5BFlexible%20%2F%20Within%201%20month%20%2F%20Within%203%20months%5D%0ABudget%20Range%3A%20%5BOpen%20to%20discuss%5D%0A%0ABrief%20Description%3A%0A%5BPlease%20describe%20what%20you%20need%20built%5D%0A%0ALooking%20forward%20to%20hearing%20from%20you.%0A%0ABest%20regards%2C%0A%5BYour%20Name%5D" target="_blank" rel="noopener noreferrer" style={{ padding: '10px 20px', background: 'var(--text-primary)', color: 'var(--bg-primary)', fontSize: '0.875rem', fontWeight: 600, borderRadius: 6, textDecoration: 'none' }}>
+                        Contact Developer →
+                    </a>
+                </div>
+
+            </div>
+        </CrmLayout>
+    );
+}

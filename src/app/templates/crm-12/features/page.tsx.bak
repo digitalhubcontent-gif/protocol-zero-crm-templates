@@ -1,0 +1,125 @@
+'use client';
+
+import React, { useState } from 'react';
+import { getTemplateBySlug, getAdjacentTemplates } from '@/lib/registry';
+import { CrmLayout } from '@/components/crm-layout/CrmLayout';
+
+const accent = '#f97316';
+const bg = '#020405';
+const card: React.CSSProperties = { background: '#0d1825', border: '1px solid rgba(249,115,22,0.08)', borderRadius: 8, padding: '24px 28px', transition: 'all 0.25s cubic-bezier(.4,0,.2,1)' };
+
+const FEATURES = [
+    {
+        title: 'Revenue Capacity Engine',
+        desc: 'Know exactly how many producers you need, where they should sit, and what they should carry.',
+        icon: '⚡',
+        features: [
+            'Capacity utilization gauge with green/amber/red zones',
+            'Headcount vs revenue scatter with efficiency trend line',
+            'Revenue Capacity Matrix with conditional formatting',
+            'Scenario modeling sliders (headcount, territory, quota)',
+            'Collapsible capacity planning sidebar panel',
+        ],
+    },
+    {
+        title: 'Ramp Intelligence Framework',
+        desc: 'Track new hire time-to-productivity with cohort comparison and S-curve benchmarking.',
+        icon: '🚀',
+        features: [
+            'Ramp timeline Gantt chart with status-coded bars',
+            'S-curve productivity overlay with expected checkpoints',
+            'Cohort ramp heatmap — % quota attained per hire quarter',
+            'Producer productivity dots showing current vs expected',
+            'Automated ramp milestone alerts and coaching triggers',
+        ],
+    },
+    {
+        title: 'Territory Coverage Analysis',
+        desc: 'Multi-quarter coverage heatmap with rebalancing recommendations and gap detection.',
+        icon: '🗺️',
+        features: [
+            'Territory × quarter coverage heatmap with color coding',
+            'Red zone alerts for under-covered territories',
+            'Pipeline coverage imbalance detection and alerting',
+            'Territory rebalance automation workflow integration',
+            'Headcount allocation scenario modeling per territory',
+        ],
+    },
+    {
+        title: 'Operational Cost Modeling',
+        desc: 'CAC payback curves, headcount ROI, and revenue mix analysis.',
+        icon: '💰',
+        features: [
+            'CAC payback curve with crossover annotation',
+            'ARR per producer trend with optimal band overlay',
+            'ARR bridge waterfall (New + Expansion - Contraction - Churn)',
+            'NRR trend with 100% baseline and green zone',
+            'Revenue mix stacked analysis (new vs expansion vs renewal)',
+        ],
+    },
+];
+
+function FeaturesContent() {
+    const [expanded, setExpanded] = useState<number | null>(0);
+
+    return (
+        <div style={{ background: bg, minHeight: '100vh' }}>
+            <div style={{ padding: '28px 32px', maxWidth: 1200, margin: '0 auto' }}>
+                <div style={{ textAlign: 'center', marginBottom: 48 }}>
+                    <div style={{ display: 'inline-block', padding: '3px 12px', borderRadius: 20, background: `${accent}12`, border: `1px solid ${accent}20`, color: accent, fontSize: '0.5625rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 14 }}>
+                        Revenue Operations Platform
+                    </div>
+                    <h1 style={{ fontSize: 'clamp(1.5rem, 3vw, 2.2rem)', fontWeight: 800, color: '#f9fafb', margin: '0 0 12px', letterSpacing: '-0.03em', fontFamily: "'Space Grotesk', sans-serif" }}>
+                        The engine behind your <span style={{ color: accent }}>revenue machine.</span>
+                    </h1>
+                    <p style={{ fontSize: '0.875rem', color: '#6b7280', maxWidth: 520, margin: '0 auto' }}>
+                        Built for RevOps leaders who think in headcount, capacity, and operational efficiency.
+                    </p>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    {FEATURES.map((cat, i) => (
+                        <div key={i} style={{ ...card, cursor: 'pointer', borderColor: expanded === i ? `${accent}30` : 'rgba(249,115,22,0.08)' }}
+                            onClick={() => setExpanded(expanded === i ? null : i)}
+                            onMouseEnter={e => { if (expanded !== i) (e.currentTarget as HTMLDivElement).style.borderColor = `${accent}18`; }}
+                            onMouseLeave={e => { if (expanded !== i) (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(249,115,22,0.08)'; }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                                    <span style={{ fontSize: '1.5rem' }}>{cat.icon}</span>
+                                    <div>
+                                        <div style={{ fontSize: '1rem', fontWeight: 700, color: '#f9fafb', marginBottom: 4, fontFamily: "'Space Grotesk', sans-serif" }}>{cat.title}</div>
+                                        <div style={{ fontSize: '0.6875rem', color: '#6b7280' }}>{cat.desc}</div>
+                                    </div>
+                                </div>
+                                <span style={{ fontSize: '0.875rem', color: '#4b5563', transition: 'transform 0.2s', transform: expanded === i ? 'rotate(180deg)' : 'none' }}>▾</span>
+                            </div>
+                            {expanded === i && (
+                                <div style={{ marginTop: 20, paddingTop: 16, borderTop: `1px solid ${accent}12` }}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                                        {cat.features.map((f, fi) => (
+                                            <div key={fi} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                                                <span style={{ color: accent, fontSize: '0.625rem', flexShrink: 0, marginTop: 2 }}>✓</span>
+                                                <span style={{ fontSize: '0.6875rem', color: '#9ca3af', lineHeight: 1.6 }}>{f}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+export default function Features12Page() {
+    const template = getTemplateBySlug('crm-12');
+    if (!template) return null;
+    const { prev, next } = getAdjacentTemplates('crm-12');
+    return (
+        <CrmLayout template={template} prevTemplate={prev} nextTemplate={next} currentPage="features" accentColor={accent}>
+            <FeaturesContent />
+        </CrmLayout>
+    );
+}

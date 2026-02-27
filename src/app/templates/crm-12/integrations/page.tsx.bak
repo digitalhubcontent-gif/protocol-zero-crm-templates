@@ -1,0 +1,81 @@
+'use client';
+
+import React, { useState } from 'react';
+import { getTemplateBySlug, getAdjacentTemplates } from '@/lib/registry';
+import { CrmLayout } from '@/components/crm-layout/CrmLayout';
+import { OPS_INTEGRATIONS } from '../data';
+
+const accent = '#f97316';
+const bg = '#020405';
+const card: React.CSSProperties = { background: '#0d1825', border: '1px solid rgba(249,115,22,0.08)', borderRadius: 8, padding: '20px 24px', transition: 'all 0.25s cubic-bezier(.4,0,.2,1)' };
+
+function IntegrationsContent() {
+    const [hovered, setHovered] = useState<string | null>(null);
+
+    return (
+        <div style={{ background: bg, minHeight: '100vh' }}>
+            <div style={{ padding: '24px 32px', maxWidth: 1400, margin: '0 auto' }}>
+                <div style={{ marginBottom: 24 }}>
+                    <h1 style={{ fontSize: '1.375rem', fontWeight: 700, color: '#f9fafb', margin: 0, fontFamily: "'Space Grotesk', sans-serif" }}>Operational Data Layer</h1>
+                    <p style={{ fontSize: '0.75rem', color: '#4b5563', margin: '4px 0 0' }}>HR systems · ERP · BI platforms · Marketing · Data warehouse</p>
+                </div>
+
+                <div style={{ ...card, marginBottom: 24, fontFamily: 'monospace', fontSize: '0.6875rem', color: '#9ca3af' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                        <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#22c55e' }} />
+                        <strong style={{ color: '#22c55e', fontFamily: "'Space Grotesk', sans-serif" }}>ALL SYSTEMS OPERATIONAL</strong>
+                    </div>
+                    <span>8 connected · 5 available · Last sync: <strong style={{ color: '#d1d5db' }}>4m ago</strong> · Records: <strong style={{ color: '#d1d5db' }}>284,192</strong></span>
+                </div>
+
+                {OPS_INTEGRATIONS.map(cat => (
+                    <div key={cat.category} style={{ marginBottom: 24 }}>
+                        <div style={{ fontSize: '0.625rem', fontWeight: 700, color: accent, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 12, paddingBottom: 8, borderBottom: `1px solid ${accent}12` }}>
+                            {cat.category}
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(cat.items.length, 4)}, 1fr)`, gap: 12 }}>
+                            {cat.items.map(int => {
+                                const isHov = hovered === `${cat.category}-${int.name}`;
+                                return (
+                                    <div key={int.name}
+                                        onMouseEnter={() => setHovered(`${cat.category}-${int.name}`)}
+                                        onMouseLeave={() => setHovered(null)}
+                                        style={{ ...card, borderColor: isHov ? `${accent}30` : 'rgba(249,115,22,0.08)', transform: isHov ? 'translateY(-3px)' : 'none', boxShadow: isHov ? '0 8px 20px rgba(0,0,0,0.3)' : 'none', cursor: 'pointer' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                                            <span style={{ fontSize: '0.875rem', fontWeight: 700, color: '#f9fafb', fontFamily: "'Space Grotesk', sans-serif" }}>{int.name}</span>
+                                            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                                <span style={{ width: 6, height: 6, borderRadius: '50%', background: int.status === 'connected' ? '#22c55e' : '#6b7280' }} />
+                                                <span style={{ fontSize: '0.5rem', color: int.status === 'connected' ? '#22c55e' : '#6b7280', fontWeight: 600 }}>
+                                                    {int.status === 'connected' ? 'Linked' : 'Available'}
+                                                </span>
+                                            </span>
+                                        </div>
+                                        <p style={{ fontSize: '0.625rem', color: '#6b7280', lineHeight: 1.6, margin: 0 }}>{int.desc}</p>
+                                        {int.status === 'available' && (
+                                            <button style={{ marginTop: 12, padding: '5px 12px', borderRadius: 4, fontSize: '0.5625rem', fontWeight: 600, background: `${accent}15`, color: accent, border: 'none', cursor: 'pointer', transition: 'all 0.15s' }}
+                                                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = `${accent}25`; }}
+                                                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = `${accent}15`; }}>
+                                                Connect →
+                                            </button>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+export default function Integrations12Page() {
+    const template = getTemplateBySlug('crm-12');
+    if (!template) return null;
+    const { prev, next } = getAdjacentTemplates('crm-12');
+    return (
+        <CrmLayout template={template} prevTemplate={prev} nextTemplate={next} currentPage="integrations" accentColor={accent}>
+            <IntegrationsContent />
+        </CrmLayout>
+    );
+}

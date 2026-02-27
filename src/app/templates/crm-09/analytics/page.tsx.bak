@@ -1,0 +1,142 @@
+'use client';
+
+import React from 'react';
+import { getTemplateBySlug, getAdjacentTemplates } from '@/lib/registry';
+import { CrmLayout } from '@/components/crm-layout/CrmLayout';
+import { AreaChart } from '@/components/charts/AreaChart';
+import { TreemapChart } from '@/components/charts/TreemapChart';
+import { ARR_PROJECTION, CHURN_COHORT, REVENUE_SEGMENTS, RISK_TREEMAP } from '../data';
+
+const accent = '#3b82f6';
+const card: React.CSSProperties = { background: '#1e293b', border: '1px solid rgba(59,130,246,0.1)', borderRadius: 8, padding: '20px 24px' };
+const lbl: React.CSSProperties = { fontSize: '0.625rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 14 };
+
+function AnalyticsContent() {
+    const heroMetrics = [
+        { label: 'Forecast Delta %', value: '+3.2%', sub: 'Actuals exceeded forecast', color: '#22c55e' },
+        { label: 'Enterprise Churn Risk', value: '$12M', sub: 'Renewal probability <70%', color: '#ef4444' },
+        { label: 'Revenue Stability Index', value: '8.4/10', sub: 'Multi-year weighted', color: accent },
+    ];
+
+    const maxSeg = Math.max(...REVENUE_SEGMENTS.map(s => s.arr));
+
+    return (
+        <div style={{ background: '#0f172a', minHeight: '100vh' }}>
+            <div style={{ padding: '28px 32px', maxWidth: 1400, margin: '0 auto' }}>
+                <div style={{ marginBottom: 24 }}>
+                    <h1 style={{ fontSize: '1.375rem', fontWeight: 700, color: '#e2e8f0', margin: 0 }}>Strategic Revenue Intelligence</h1>
+                    <p style={{ fontSize: '0.75rem', color: '#64748b', margin: '4px 0 0' }}>ARR projections · Churn cohorts · Segment analysis · Risk distribution</p>
+                </div>
+
+                {/* Hero KPIs */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 14, marginBottom: 20 }}>
+                    {heroMetrics.map(m => (
+                        <div key={m.label} style={{ ...card, transition: 'all 0.2s', cursor: 'default' }}
+                            onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = `${m.color}45`; (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)'; }}
+                            onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(59,130,246,0.1)'; (e.currentTarget as HTMLDivElement).style.transform = 'none'; }}>
+                            <div style={{ fontSize: '0.5rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6, fontWeight: 700 }}>{m.label}</div>
+                            <div style={{ fontSize: '2rem', fontWeight: 800, color: m.color, letterSpacing: '-0.03em', lineHeight: 1 }}>{m.value}</div>
+                            <div style={{ fontSize: '0.625rem', color: '#475569', marginTop: 8 }}>{m.sub}</div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Row 1: ARR Projection + Churn Cohort */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
+                    <div style={card}>
+                        <div style={lbl}>Strategic ARR Growth Projection</div>
+                        <AreaChart
+                            series={[
+                                { label: 'Base', color: accent, data: ARR_PROJECTION.base },
+                                { label: 'Upside', color: '#22c55e', dashed: true, data: ARR_PROJECTION.upside, fillOpacity: 0.08 },
+                            ]}
+                            height={200}
+                        />
+                    </div>
+
+                    <div style={card}>
+                        <div style={lbl}>Enterprise Renewal Cohort Analysis</div>
+                        <div style={{ overflowX: 'auto' }}>
+                            <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 3 }}>
+                                <thead>
+                                    <tr>
+                                        <th style={{ padding: '4px 8px', fontSize: '0.5rem', color: '#64748b', textAlign: 'left', fontWeight: 700 }}>Cohort</th>
+                                        {CHURN_COHORT.cols.map(c => (
+                                            <th key={c} style={{ padding: '4px 8px', fontSize: '0.5rem', color: '#64748b', textAlign: 'center', fontWeight: 700 }}>{c}</th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {CHURN_COHORT.rows.map((row, ri) => (
+                                        <tr key={row}>
+                                            <td style={{ padding: '3px 8px', fontSize: '0.5625rem', color: '#94a3b8', fontWeight: 600 }}>{row}</td>
+                                            {CHURN_COHORT.cols.map((_, ci) => {
+                                                const val = CHURN_COHORT.values[ri][ci];
+                                                if (val === null) return <td key={ci} style={{ padding: '3px' }}><div style={{ height: 28, borderRadius: 3, background: 'rgba(255,255,255,0.03)' }} /></td>;
+                                                const intensity = Math.round((val / 100) * 200).toString(16).padStart(2, '0');
+                                                const bg = val >= 90 ? `#22c55e${intensity}` : val >= 80 ? `${accent}${intensity}` : `#ef4444${intensity}`;
+                                                return (
+                                                    <td key={ci} style={{ padding: '3px' }}>
+                                                        <div style={{ height: 28, borderRadius: 3, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                            <span style={{ fontSize: '0.5625rem', fontWeight: 700, color: val > 85 ? 'rgba(0,0,0,0.7)' : '#e2e8f0' }}>{val}%</span>
+                                                        </div>
+                                                    </td>
+                                                );
+                                            })}
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Row 2: Revenue by Segment + Risk Treemap */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+                    <div style={card}>
+                        <div style={lbl}>Revenue by Industry Segment</div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                            {REVENUE_SEGMENTS.map(s => (
+                                <div key={s.segment}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                                        <span style={{ fontSize: '0.6875rem', color: '#94a3b8', fontWeight: 500 }}>{s.segment}</span>
+                                        <span style={{ fontSize: '0.625rem', color: accent, fontWeight: 600 }}>${s.arr}M</span>
+                                    </div>
+                                    <div style={{ display: 'flex', gap: 2, height: 18, borderRadius: 3, overflow: 'hidden' }}>
+                                        <div style={{ width: `${(s.arr / maxSeg) * 100}%`, background: accent, opacity: 0.7, transition: 'all 0.2s' }} title={`ARR: $${s.arr}M`} />
+                                        <div style={{ width: `${(s.expansion / maxSeg) * 100}%`, background: '#22c55e', opacity: 0.7 }} title={`Expansion: $${s.expansion}M`} />
+                                        <div style={{ width: `${(Math.abs(s.churn) / maxSeg) * 100}%`, background: '#ef4444', opacity: 0.7 }} title={`Churn: $${s.churn}M`} />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        <div style={{ display: 'flex', gap: 14, marginTop: 14 }}>
+                            {[['ARR', accent], ['Expansion', '#22c55e'], ['Churn', '#ef4444']].map(([l, c]) => (
+                                <div key={l} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                    <div style={{ width: 8, height: 8, borderRadius: 2, background: c }} />
+                                    <span style={{ fontSize: '0.5rem', color: '#64748b' }}>{l}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div style={card}>
+                        <div style={lbl}>Portfolio Risk Exposure — ARR at Risk</div>
+                        <TreemapChart nodes={RISK_TREEMAP} accent={accent} height={220} />
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+export default function Analytics09Page() {
+    const template = getTemplateBySlug('crm-09');
+    if (!template) return null;
+    const { prev, next } = getAdjacentTemplates('crm-09');
+    return (
+        <CrmLayout template={template} prevTemplate={prev} nextTemplate={next} currentPage="analytics" accentColor={accent}>
+            <AnalyticsContent />
+        </CrmLayout>
+    );
+}

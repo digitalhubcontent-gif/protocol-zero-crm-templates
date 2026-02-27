@@ -1,0 +1,122 @@
+'use client';
+
+import React from 'react';
+import { getTemplateBySlug, getAdjacentTemplates } from '@/lib/registry';
+import { CrmLayout } from '@/components/crm-layout/CrmLayout';
+import { FunnelChart } from '@/components/charts/FunnelChart';
+import { CAPACITY_FUNNEL, PRODUCER_LOAD } from '../data';
+
+const accent = '#f97316';
+const bg = 'var(--bg-primary)';
+const card: React.CSSProperties = { background: 'var(--bg-card)', border: '1px solid rgba(249,115,22,0.08)', borderRadius: 8, padding: '20px 24px', transition: 'all 0.25s cubic-bezier(.4,0,.2,1)' };
+const lbl: React.CSSProperties = { fontSize: '0.625rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 14 };
+
+function PipelineContent() {
+    const maxLoad = Math.max(...PRODUCER_LOAD.map(p => p.pipeline));
+    const avgLoad = PRODUCER_LOAD.reduce((a, p) => a + p.pipeline, 0) / PRODUCER_LOAD.length;
+
+    return (
+        <div style={{ background: bg, minHeight: '100vh' }}>
+            <div style={{ padding: '24px 32px', maxWidth: 1400, margin: '0 auto' }}>
+                <h1 style={{ fontSize: '1.375rem', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 4px', fontFamily: "'Space Grotesk', sans-serif" }}>Capacity-Weighted Pipeline</h1>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: '0 0 20px' }}>Capacity input · Producer load · Close probability · Risk distribution</p>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 14, marginBottom: 20 }}>
+                    {[
+                        { label: 'Input per Producer', value: '$4.2M', color: accent },
+                        { label: 'Coverage Ratio', value: '3.4x', color: '#22c55e' },
+                        { label: 'Workload Balance', value: '71%', color: '#f59e0b' },
+                    ].map(m => (
+                        <div key={m.label} style={card}
+                            onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = `${m.color}30`; (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-3px)'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 20px rgba(0,0,0,0.3)'; }}
+                            onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(249,115,22,0.08)'; (e.currentTarget as HTMLDivElement).style.transform = 'none'; (e.currentTarget as HTMLDivElement).style.boxShadow = 'none'; }}>
+                            <div style={{ fontSize: '0.5rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>{m.label}</div>
+                            <div style={{ fontSize: '2rem', fontWeight: 800, color: m.color, letterSpacing: '-0.04em', fontFamily: "'Space Grotesk', sans-serif" }}>{m.value}</div>
+                        </div>
+                    ))}
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
+                    <div style={card}
+                        onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = `${accent}25`; }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(249,115,22,0.08)'; }}>
+                        <div style={lbl}>Capacity Phase Funnel</div>
+                        <FunnelChart stages={CAPACITY_FUNNEL.map(f => ({ label: f.label, count: f.count, conversion: f.conversion }))} accent={accent} height={220} />
+                    </div>
+                    <div style={card}
+                        onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = `${accent}25`; }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(249,115,22,0.08)'; }}>
+                        <div style={lbl}>Producer Workload Distribution</div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                            {PRODUCER_LOAD.map(p => {
+                                const pct = (p.pipeline / maxLoad) * 100;
+                                const overloaded = p.pipeline > avgLoad * 1.2;
+                                const under = p.pipeline < avgLoad * 0.6;
+                                return (
+                                    <div key={p.name} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                        <span style={{ fontSize: '0.5625rem', color: 'var(--text-muted)', width: 90, textAlign: 'right', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</span>
+                                        <div style={{ flex: 1, height: 16, background: 'var(--bg-card)', borderRadius: 3, position: 'relative', overflow: 'hidden' }}>
+                                            <div style={{ width: `${pct}%`, height: '100%', background: overloaded ? '#ef4444' : under ? '#f59e0b' : accent, borderRadius: 3, opacity: 0.6, transition: 'all 0.3s' }} />
+                                            {/* Reference line */}
+                                            <div style={{ position: 'absolute', left: `${(avgLoad / maxLoad) * 100}%`, top: 0, width: 1, height: '100%', background: 'var(--chart-grid)' }} />
+                                        </div>
+                                        <span style={{ fontSize: '0.5rem', fontWeight: 700, color: overloaded ? '#ef4444' : under ? '#f59e0b' : accent, width: 38, textAlign: 'right' }}>${p.pipeline}M</span>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        <div style={{ fontSize: '0.45rem', color: 'var(--text-muted)', marginTop: 6 }}>Reference line = team average (${avgLoad.toFixed(1)}M)</div>
+                    </div>
+                </div>
+
+                {/* Close Probability + Risk */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+                    <div style={card}
+                        onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = `${accent}25`; }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(249,115,22,0.08)'; }}>
+                        <div style={lbl}>Close Probability Curve</div>
+                        <svg width="100%" height="160" viewBox="0 0 300 160">
+                            <polyline points="30,150 50,142 70,130 90,115 110,98 130,82 150,68 170,56 190,46 210,38 230,32 250,28 270,26" stroke={accent} strokeWidth={2} fill="none" />
+                            {[30, 90, 150, 210, 270].map((x, i) => (
+                                <text key={i} x={x} y={158} textAnchor="middle" fontSize={6} fill="var(--text-secondary)">{i * 45}d</text>
+                            ))}
+                            <text x={150} y={14} textAnchor="middle" fontSize={7} fill="var(--text-secondary)">Revenue certainty rises over time</text>
+                        </svg>
+                    </div>
+                    <div style={card}
+                        onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = `${accent}25`; }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(249,115,22,0.08)'; }}>
+                        <div style={lbl}>Capacity Input Risk Distribution</div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
+                            {[
+                                { label: 'Low Risk', value: '$28M', pct: 42, color: '#22c55e' },
+                                { label: 'Medium', value: '$18M', pct: 27, color: '#f59e0b' },
+                                { label: 'High Risk', value: '$12M', pct: 18, color: '#ef4444' },
+                                { label: 'Critical', value: '$8M', pct: 13, color: '#dc2626' },
+                            ].map(r => (
+                                <div key={r.label} style={{ textAlign: 'center', padding: 10, background: 'var(--bg-card)', borderRadius: 6, transition: 'all 0.2s', cursor: 'pointer' }}
+                                    onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)'; }}
+                                    onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = 'none'; }}>
+                                    <div style={{ fontSize: '1.25rem', fontWeight: 800, color: r.color, fontFamily: "'Space Grotesk', sans-serif" }}>{r.pct}%</div>
+                                    <div style={{ fontSize: '0.5rem', color: r.color, fontWeight: 600, marginTop: 2 }}>{r.value}</div>
+                                    <div style={{ fontSize: '0.4375rem', color: 'var(--text-muted)', marginTop: 4 }}>{r.label}</div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+export default function Pipeline12Page() {
+    const template = getTemplateBySlug('crm-12');
+    if (!template) return null;
+    const { prev, next } = getAdjacentTemplates('crm-12');
+    return (
+        <CrmLayout template={template} prevTemplate={prev} nextTemplate={next} currentPage="pipeline" accentColor={accent}>
+            <PipelineContent />
+        </CrmLayout>
+    );
+}

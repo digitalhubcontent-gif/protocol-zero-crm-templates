@@ -1,0 +1,270 @@
+.root {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-primary);
+}
+
+/* ── Top Bar ──────────────────────────────── */
+.topBar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    height: 52px;
+    background: var(--tnav-bg);
+    border-bottom: 1px solid var(--tnav-border);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+}
+
+.topBarInner {
+    height: 100%;
+    max-width: var(--container-wide);
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.topBarLeft {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.backLink {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    transition: color var(--transition-fast);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.backLink:hover {
+    color: var(--text-primary);
+}
+
+.topBarDivider {
+    width: 1px;
+    height: 20px;
+    background: var(--tnav-border);
+    flex-shrink: 0;
+}
+
+.templateMeta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.templateId {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    flex-shrink: 0;
+}
+
+.templateName {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.topBarRight {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.navArrows {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.arrowBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    border: 1px solid var(--border-card);
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.arrowBtn:hover:not(:disabled) {
+    border-color: var(--border-accent);
+    color: var(--text-primary);
+    background: var(--bg-card);
+}
+
+.arrowBtn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.templateCounter {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+    padding: 0 6px;
+    min-width: 36px;
+    text-align: center;
+}
+
+/* ── Content ──────────────────────────────── */
+.content {
+    flex: 1;
+}
+
+/* ── Footer ──────────────────────────────── */
+.footer {
+    border-top: 1px solid var(--tnav-border);
+    background: var(--tnav-bg);
+    padding: 20px 0;
+}
+
+.footerInner {
+    max-width: var(--container-wide);
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+.footerNav {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 16px;
+}
+
+.footerNavBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    border: 1px solid var(--border-card);
+    background: transparent;
+    transition: all var(--transition-base);
+    text-decoration: none;
+    color: var(--text-secondary);
+    max-width: 220px;
+}
+
+.footerNavBtn:hover {
+    border-color: var(--border-accent);
+    color: var(--text-primary);
+    background: var(--bg-card);
+}
+
+.footerNavBtnRight {
+    margin-left: auto;
+    text-align: right;
+    flex-direction: row-reverse;
+}
+
+.footerNavLabel {
+    font-size: 0.6875rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 2px;
+}
+
+.footerNavName {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.footerLibraryBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: 1px solid var(--border-accent);
+    background: rgba(124, 58, 237, 0.06);
+    color: var(--accent-violet);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    transition: all var(--transition-base);
+    white-space: nowrap;
+}
+
+.footerLibraryBtn:hover {
+    background: rgba(124, 58, 237, 0.12);
+}
+
+/* ── Footer Branding ─────────────────────── */
+.footerBranding {
+    text-align: center;
+    padding-top: 16px;
+    margin-top: 16px;
+    border-top: 1px solid var(--border-subtle);
+    font-size: 0.6875rem;
+    color: var(--text-muted);
+    letter-spacing: 0.02em;
+}
+
+.footerHireMe {
+    text-align: center;
+    padding-top: 6px;
+    font-size: 0.6875rem;
+    color: var(--text-muted);
+    letter-spacing: 0.02em;
+}
+
+.footerBrandLink {
+    color: var(--text-secondary);
+    font-weight: 600;
+    text-decoration: none;
+    transition: color var(--transition-fast), text-shadow var(--transition-fast);
+}
+
+.footerBrandLink:hover {
+    color: var(--text-primary);
+    text-shadow: 0 0 12px rgba(124, 58, 237, 0.3);
+}
+
+/* ── Responsive ──────────────────────────── */
+@media (max-width: 600px) {
+    .templateName {
+        display: none;
+    }
+
+    .footerNav {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .footerLibraryBtn {
+        display: none;
+    }
+
+    .footerNavBtn {
+        max-width: 100%;
+    }
+}

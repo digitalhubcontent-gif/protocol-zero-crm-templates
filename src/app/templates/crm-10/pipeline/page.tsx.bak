@@ -1,0 +1,158 @@
+'use client';
+
+import React from 'react';
+import { getTemplateBySlug, getAdjacentTemplates } from '@/lib/registry';
+import { CrmLayout } from '@/components/crm-layout/CrmLayout';
+import { CONTROLLED_PHASES, SECURITY_CLASSIFICATION, GATE_REGISTER } from '../data';
+
+const accent = '#10b981';
+const card: React.CSSProperties = { background: '#111827', border: '1px solid rgba(16,185,129,0.08)', borderRadius: 8, padding: '20px 24px' };
+const lbl: React.CSSProperties = { fontSize: '0.625rem', fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 14 };
+
+function PipelineContent() {
+    const gateColor = (g: string) => g === 'Approved' ? '#22c55e' : g === 'Pending' ? '#f59e0b' : '#ef4444';
+    const classColor = (c: string) => {
+        const map: Record<string, string> = { Public: '#22c55e', Internal: '#3b82f6', Confidential: '#f59e0b', Restricted: '#ef4444', 'Top Secret': '#7c3aed' };
+        return map[c] || '#6b7280';
+    };
+    const maxPhase = Math.max(...CONTROLLED_PHASES.map(p => p.value));
+
+    return (
+        <div style={{ background: '#030712', minHeight: '100vh' }}>
+            {/* Compliance Gate Ribbon */}
+            <div style={{ borderBottom: '1px solid rgba(16,185,129,0.06)' }}>
+                <div style={{ padding: '10px 32px', background: 'rgba(239,68,68,0.04)', display: 'flex', justifyContent: 'space-between', fontSize: '0.6875rem' }}>
+                    <span style={{ color: '#ef4444' }}>
+                        <strong>COMPLIANCE GATE BLOCKED:</strong> 2 deals require CCO review before phase advancement
+                    </span>
+                    <span style={{ color: '#6b7280' }}>Compliance Score Threshold: 80% minimum</span>
+                </div>
+            </div>
+
+            <div style={{ padding: '24px 32px', maxWidth: 1400, margin: '0 auto' }}>
+                <div style={{ marginBottom: 24 }}>
+                    <h1 style={{ fontSize: '1.375rem', fontWeight: 700, color: '#f9fafb', margin: 0 }}>Controlled Opportunity Management</h1>
+                    <p style={{ fontSize: '0.75rem', color: '#4b5563', margin: '4px 0 0' }}>Compliance gates · Security classification · Controlled phase progression</p>
+                </div>
+
+                {/* Metrics */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 14, marginBottom: 20 }}>
+                    {[
+                        { label: 'Compliance-Cleared Revenue', value: '$42M', color: accent },
+                        { label: 'Gate-Blocked Revenue', value: '$7M', color: '#ef4444' },
+                        { label: 'Avg Compliance Score', value: '92%', color: '#22c55e' },
+                    ].map(m => (
+                        <div key={m.label} style={{ ...card, transition: 'all 0.2s', cursor: 'default' }}
+                            onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = `${m.color}35`; (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)'; }}
+                            onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(16,185,129,0.08)'; (e.currentTarget as HTMLDivElement).style.transform = 'none'; }}>
+                            <div style={{ fontSize: '0.5rem', color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6, fontWeight: 700 }}>{m.label}</div>
+                            <div style={{ fontSize: '2rem', fontWeight: 800, color: m.color, letterSpacing: '-0.03em', lineHeight: 1 }}>{m.value}</div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Row 1: Controlled Phases + Security Classification */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
+                    <div style={card}>
+                        <div style={lbl}>Controlled Phase Distribution</div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                            {CONTROLLED_PHASES.map(p => {
+                                const scoreColor = p.complianceScore >= 95 ? accent : p.complianceScore >= 85 ? '#f59e0b' : '#ef4444';
+                                return (
+                                    <div key={p.phase}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+                                            <span style={{ fontSize: '0.6875rem', color: '#9ca3af', fontWeight: 500 }}>{p.phase}</span>
+                                            <span style={{ fontSize: '0.5625rem' }}>
+                                                <span style={{ color: accent, fontWeight: 700 }}>${p.value}M</span>
+                                                <span style={{ color: '#4b5563' }}> · {p.count} deals · </span>
+                                                <span style={{ color: scoreColor, fontWeight: 600 }}>{p.complianceScore}% compliant</span>
+                                            </span>
+                                        </div>
+                                        <div style={{ height: 10, background: 'rgba(255,255,255,0.03)', borderRadius: 3 }}>
+                                            <div style={{ width: `${(p.value / maxPhase) * 100}%`, height: '100%', background: accent, borderRadius: 3, opacity: 0.8 }} />
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    <div style={card}>
+                        <div style={lbl}>Security Classification Distribution</div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                            {SECURITY_CLASSIFICATION.map(sc => (
+                                <div key={sc.classification} style={{ display: 'grid', gridTemplateColumns: '100px 1fr 60px', gap: 12, alignItems: 'center' }}>
+                                    <span style={{ fontSize: '0.6875rem', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                        <span style={{ width: 8, height: 8, borderRadius: 2, background: classColor(sc.classification) }} />
+                                        <span style={{ color: '#9ca3af', fontWeight: 500 }}>{sc.classification}</span>
+                                    </span>
+                                    <div style={{ height: 14, background: 'rgba(255,255,255,0.03)', borderRadius: 3, display: 'flex', alignItems: 'center' }}>
+                                        <div style={{ width: `${(sc.deals / 24) * 100}%`, height: '100%', background: classColor(sc.classification), borderRadius: 3, opacity: 0.7 }} />
+                                    </div>
+                                    <span style={{ fontSize: '0.625rem', color: classColor(sc.classification), fontWeight: 700, textAlign: 'right' }}>{sc.arr}</span>
+                                </div>
+                            ))}
+                        </div>
+                        <div style={{ marginTop: 14, padding: '6px 12px', background: '#ef444408', borderRadius: 4, fontSize: '0.5625rem', color: '#ef4444', fontWeight: 500 }}>
+                            ⚠ Restricted + Top Secret: $36M requires enhanced security clearance
+                        </div>
+                    </div>
+                </div>
+
+                {/* Compliance Gate Register */}
+                <div style={card}>
+                    <div style={lbl}>Compliance Gate Register</div>
+                    <div style={{ overflowX: 'auto' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.6875rem' }}>
+                            <thead>
+                                <tr style={{ background: '#030712' }}>
+                                    {['Deal', 'ARR', 'Classification', 'Compliance Score', 'Gate Status', 'Reviewer'].map(h => (
+                                        <th key={h} style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: '#4b5563', fontSize: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>{h}</th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {GATE_REGISTER.map(g => {
+                                    const scoreColor = g.complianceScore >= 90 ? accent : g.complianceScore >= 80 ? '#f59e0b' : '#ef4444';
+                                    return (
+                                        <tr key={g.deal} style={{
+                                            borderTop: '1px solid rgba(255,255,255,0.03)',
+                                            borderLeft: g.gate === 'Blocked' ? '3px solid #ef4444' : '3px solid transparent',
+                                            transition: 'background 0.15s', cursor: 'pointer',
+                                        }}
+                                            onMouseEnter={e => (e.currentTarget as HTMLTableRowElement).style.background = 'rgba(255,255,255,0.02)'}
+                                            onMouseLeave={e => (e.currentTarget as HTMLTableRowElement).style.background = 'transparent'}>
+                                            <td style={{ padding: '10px 12px', fontWeight: 600, color: '#d1d5db' }}>{g.deal}</td>
+                                            <td style={{ padding: '10px 12px', fontWeight: 700, color: accent }}>{g.arr}</td>
+                                            <td style={{ padding: '10px 12px' }}>
+                                                <span style={{ padding: '2px 8px', borderRadius: 3, fontSize: '0.5rem', fontWeight: 700, background: `${classColor(g.classification)}15`, color: classColor(g.classification) }}>{g.classification}</span>
+                                            </td>
+                                            <td style={{ padding: '10px 12px' }}>
+                                                <span style={{ fontWeight: 700, color: scoreColor }}>{g.complianceScore}%</span>
+                                            </td>
+                                            <td style={{ padding: '10px 12px' }}>
+                                                <span style={{ padding: '2px 8px', borderRadius: 3, fontSize: '0.5rem', fontWeight: 700, background: `${gateColor(g.gate)}15`, color: gateColor(g.gate) }}>{g.gate}</span>
+                                            </td>
+                                            <td style={{ padding: '10px 12px', color: '#6b7280', fontSize: '0.625rem' }}>{g.reviewer}</td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+export default function Pipeline10Page() {
+    const template = getTemplateBySlug('crm-10');
+    if (!template) return null;
+    const { prev, next } = getAdjacentTemplates('crm-10');
+    return (
+        <CrmLayout template={template} prevTemplate={prev} nextTemplate={next} currentPage="pipeline" accentColor={accent}>
+            <PipelineContent />
+        </CrmLayout>
+    );
+}

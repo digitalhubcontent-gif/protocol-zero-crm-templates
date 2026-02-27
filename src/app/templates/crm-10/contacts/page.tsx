@@ -1,0 +1,134 @@
+'use client';
+
+import React from 'react';
+import { getTemplateBySlug, getAdjacentTemplates } from '@/lib/registry';
+import { CrmLayout } from '@/components/crm-layout/CrmLayout';
+import { ENTITY_REGISTRY, ACCESS_MATRIX } from '../data';
+
+const accent = '#10b981';
+const card: React.CSSProperties = { background: 'var(--bg-card)', border: '1px solid rgba(16,185,129,0.08)', borderRadius: 8, padding: '20px 24px' };
+const lbl: React.CSSProperties = { fontSize: '0.625rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 14 };
+
+function ContactsContent() {
+    const classColor = (c: string) => {
+        const map: Record<string, string> = { Public: '#22c55e', Internal: '#3b82f6', Confidential: '#f59e0b', Restricted: '#ef4444', 'Top Secret': '#7c3aed' };
+        return map[c] || 'var(--text-muted)';
+    };
+    const permColor = (p: string) => p === 'full' ? '#10b981' : p === 'read' ? '#3b82f6' : '#374151';
+    const permBg = (p: string) => p === 'full' ? '#10b98118' : p === 'read' ? '#3b82f618' : '#37415118';
+    const permLabel = (p: string) => p === 'full' ? 'Full' : p === 'read' ? 'Read' : '—';
+
+    return (
+        <div style={{ background: 'var(--bg-primary)', minHeight: '100vh' }}>
+            <div style={{ padding: '28px 32px', maxWidth: 1400, margin: '0 auto' }}>
+                <div style={{ marginBottom: 24 }}>
+                    <h1 style={{ fontSize: '1.375rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>Regulated Entity Registry</h1>
+                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: '4px 0 0' }}>Jurisdiction mapping · Regulatory classification · DPA status · Access control</p>
+                </div>
+
+                {/* Metrics */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 14, marginBottom: 20 }}>
+                    {[
+                        { label: 'Registered Entities', value: '6', color: accent },
+                        { label: 'Active DPAs', value: '5/6', color: '#22c55e' },
+                        { label: 'Jurisdictions Covered', value: '6', color: '#3b82f6' },
+                    ].map(m => (
+                        <div key={m.label} style={{ ...card, transition: 'all 0.2s', cursor: 'default' }}
+                            onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = `${m.color}35`; (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)'; }}
+                            onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(16,185,129,0.08)'; (e.currentTarget as HTMLDivElement).style.transform = 'none'; }}>
+                            <div style={{ fontSize: '0.5rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6, fontWeight: 700 }}>{m.label}</div>
+                            <div style={{ fontSize: '2rem', fontWeight: 800, color: m.color, letterSpacing: '-0.03em', lineHeight: 1 }}>{m.value}</div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Entity Registry Table */}
+                <div style={{ ...card, marginBottom: 20 }}>
+                    <div style={lbl}>Regulated Entity Registry</div>
+                    <div style={{ overflowX: 'auto' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.6875rem' }}>
+                            <thead>
+                                <tr style={{ background: 'var(--bg-primary)' }}>
+                                    {['Entity', 'Jurisdiction', 'Regulatory Class', 'Data Classification', 'DPA', 'Last Review'].map(h => (
+                                        <th key={h} style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: 'var(--text-muted)', fontSize: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>{h}</th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {ENTITY_REGISTRY.map(e => (
+                                    <tr key={e.entity} style={{ borderTop: '1px solid var(--border-subtle)', transition: 'background 0.15s', cursor: 'pointer' }}
+                                        onMouseEnter={ev => (ev.currentTarget as HTMLTableRowElement).style.background = 'var(--bg-card)'}
+                                        onMouseLeave={ev => (ev.currentTarget as HTMLTableRowElement).style.background = 'transparent'}>
+                                        <td style={{ padding: '10px 12px', fontWeight: 600, color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>{e.entity}</td>
+                                        <td style={{ padding: '10px 12px', color: 'var(--text-muted)', fontFamily: 'monospace', fontSize: '0.625rem' }}>{e.jurisdiction}</td>
+                                        <td style={{ padding: '10px 12px' }}>
+                                            <span style={{ padding: '2px 8px', borderRadius: 3, fontSize: '0.5rem', fontWeight: 700, background: `${accent}15`, color: accent }}>{e.regulatoryClass}</span>
+                                        </td>
+                                        <td style={{ padding: '10px 12px' }}>
+                                            <span style={{ padding: '2px 8px', borderRadius: 3, fontSize: '0.5rem', fontWeight: 700, background: `${classColor(e.dataClassification)}15`, color: classColor(e.dataClassification) }}>{e.dataClassification}</span>
+                                        </td>
+                                        <td style={{ padding: '10px 12px' }}>
+                                            <span style={{ fontSize: '0.625rem', fontWeight: 700, color: e.dpa ? '#22c55e' : '#ef4444' }}>
+                                                {e.dpa ? '✓ Active' : '✕ Missing'}
+                                            </span>
+                                        </td>
+                                        <td style={{ padding: '10px 12px', color: 'var(--text-muted)', fontFamily: 'monospace', fontSize: '0.5625rem' }}>{e.lastReview}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {/* Access Control Matrix */}
+                <div style={card}>
+                    <div style={lbl}>Role-Based Access Control Matrix</div>
+                    <div style={{ overflowX: 'auto' }}>
+                        <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 3 }}>
+                            <thead>
+                                <tr>
+                                    <th style={{ padding: '4px 8px', fontSize: '0.45rem', color: 'var(--text-muted)', textAlign: 'left', fontWeight: 700 }}>Role</th>
+                                    {ACCESS_MATRIX.resources.map(r => (
+                                        <th key={r} style={{ padding: '4px', fontSize: '0.4rem', color: accent, textAlign: 'center', fontWeight: 700, minWidth: 60 }}>{r}</th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {ACCESS_MATRIX.roles.map((role, ri) => (
+                                    <tr key={role}>
+                                        <td style={{ padding: '3px 8px', fontSize: '0.5625rem', color: 'var(--text-muted)', fontWeight: 600, whiteSpace: 'nowrap' }}>{role}</td>
+                                        {ACCESS_MATRIX.resources.map((_, ci) => {
+                                            const perm = ACCESS_MATRIX.permissions[ri][ci];
+                                            return (
+                                                <td key={ci} style={{ padding: '2px' }}>
+                                                    <div style={{
+                                                        height: 24, borderRadius: 3,
+                                                        background: permBg(perm),
+                                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                    }}>
+                                                        <span style={{ fontSize: '0.4375rem', fontWeight: 700, color: permColor(perm) }}>{permLabel(perm)}</span>
+                                                    </div>
+                                                </td>
+                                            );
+                                        })}
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+export default function Contacts10Page() {
+    const template = getTemplateBySlug('crm-10');
+    if (!template) return null;
+    const { prev, next } = getAdjacentTemplates('crm-10');
+    return (
+        <CrmLayout template={template} prevTemplate={prev} nextTemplate={next} currentPage="contacts" accentColor={accent}>
+            <ContactsContent />
+        </CrmLayout>
+    );
+}

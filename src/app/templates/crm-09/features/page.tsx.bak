@@ -1,0 +1,126 @@
+'use client';
+
+import React, { useState } from 'react';
+import { getTemplateBySlug, getAdjacentTemplates } from '@/lib/registry';
+import { CrmLayout } from '@/components/crm-layout/CrmLayout';
+
+const accent = '#3b82f6';
+const card: React.CSSProperties = { background: '#1e293b', border: '1px solid rgba(59,130,246,0.1)', borderRadius: 8, padding: '24px 28px' };
+
+const FEATURE_CATEGORIES = [
+    {
+        title: 'Revenue Governance Framework',
+        desc: 'Multi-division portfolio management with board-grade oversight capabilities.',
+        features: [
+            'Multi-division portfolio management with independent P&L tracking',
+            'Risk tier classification engine (Low / Medium / High / Critical)',
+            'Enterprise pipeline coverage analysis with 3x-5x target tracking',
+            'Governance phase tracking (Qualification → Commit → Closed)',
+            'Board Revenue Register with real-time attainment metrics',
+        ],
+        icon: '🏛️',
+    },
+    {
+        title: 'Strategic Forecasting Engine',
+        desc: 'Confidence-weighted projections with 8-quarter historical accuracy tracking.',
+        features: [
+            'Confidence-weighted revenue projections with band analysis',
+            '8-quarter forecast accuracy trend monitoring',
+            'Commit / Upside / Pipeline classification with executive confidence scoring',
+            'Multi-year ARR growth modeling (base + upside scenarios)',
+            'Deviation alerts when committed forecast changes by >5%',
+        ],
+        icon: '📊',
+    },
+    {
+        title: 'Executive Oversight Layer',
+        desc: 'Board Mode views, executive summary exports, and governance status indicators.',
+        features: [
+            'Board Mode toggle — white background variant for projector/screen share',
+            'Executive Summary PDF export (2-page deck: metrics + register)',
+            'Governance Status Indicator with automated color-coding',
+            'Risk Escalation Panel for CRO attention items',
+            'Quarterly Revenue Bridge waterfall visualization',
+        ],
+        icon: '👔',
+    },
+    {
+        title: 'Multi-Division Portfolio Management',
+        desc: 'Regional performance mapping with large deal tracking and approval gates.',
+        features: [
+            'Geographic Performance Map with 5-region attainment visualization',
+            'Large Deal Tracker for strategic revenue assets >$1M',
+            'Multi-approval gate workflows (AE → Manager → VP → CRO)',
+            'Contract duration distribution with multi-year ratio tracking',
+            'Executive Relationship Network graph with influence scoring',
+        ],
+        icon: '🌐',
+    },
+];
+
+function FeaturesContent() {
+    const [expandedCat, setExpandedCat] = useState<number | null>(0);
+
+    return (
+        <div style={{ background: '#0f172a', minHeight: '100vh' }}>
+            <div style={{ padding: '28px 32px', maxWidth: 1200, margin: '0 auto' }}>
+                <div style={{ textAlign: 'center', marginBottom: 48 }}>
+                    <div style={{ display: 'inline-block', padding: '3px 12px', borderRadius: 20, background: `${accent}18`, border: `1px solid ${accent}35`, color: accent, fontSize: '0.5625rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 14 }}>
+                        Revenue Governance Platform
+                    </div>
+                    <h1 style={{ fontSize: 'clamp(1.5rem, 3vw, 2.2rem)', fontWeight: 800, color: '#e2e8f0', margin: '0 0 12px', letterSpacing: '-0.03em' }}>
+                        Built for the executive <span style={{ color: accent }}>who signs the forecast.</span>
+                    </h1>
+                    <p style={{ fontSize: '0.875rem', color: '#64748b', maxWidth: 520, margin: '0 auto' }}>
+                        Every feature designed for board-level clarity, multi-division governance, and forecast confidence.
+                    </p>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    {FEATURE_CATEGORIES.map((cat, i) => (
+                        <div key={i}
+                            style={{
+                                ...card, cursor: 'pointer', transition: 'all 0.2s',
+                                borderColor: expandedCat === i ? `${accent}40` : 'rgba(59,130,246,0.1)',
+                            }}
+                            onClick={() => setExpandedCat(expandedCat === i ? null : i)}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                                    <span style={{ fontSize: '1.5rem' }}>{cat.icon}</span>
+                                    <div>
+                                        <div style={{ fontSize: '1rem', fontWeight: 700, color: '#e2e8f0', marginBottom: 4 }}>{cat.title}</div>
+                                        <div style={{ fontSize: '0.6875rem', color: '#64748b' }}>{cat.desc}</div>
+                                    </div>
+                                </div>
+                                <span style={{ fontSize: '0.875rem', color: '#64748b', transition: 'transform 0.2s', transform: expandedCat === i ? 'rotate(180deg)' : 'none' }}>▾</span>
+                            </div>
+                            {expandedCat === i && (
+                                <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid rgba(59,130,246,0.08)' }}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                                        {cat.features.map((f, fi) => (
+                                            <div key={fi} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                                                <span style={{ color: '#22c55e', fontSize: '0.625rem', flexShrink: 0, marginTop: 2 }}>✓</span>
+                                                <span style={{ fontSize: '0.6875rem', color: '#94a3b8', lineHeight: 1.6 }}>{f}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+export default function Features09Page() {
+    const template = getTemplateBySlug('crm-09');
+    if (!template) return null;
+    const { prev, next } = getAdjacentTemplates('crm-09');
+    return (
+        <CrmLayout template={template} prevTemplate={prev} nextTemplate={next} currentPage="features" accentColor={accent}>
+            <FeaturesContent />
+        </CrmLayout>
+    );
+}
